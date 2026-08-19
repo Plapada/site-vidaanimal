@@ -478,9 +478,11 @@ button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:p
   border:2px solid var(--ink);border-radius:var(--r-glass);background:var(--creme);
   box-shadow:8px 8px 0 0 var(--ink);
   transition:transform .45s var(--ease),box-shadow .45s var(--ease),background-color .4s}
-.depo:nth-child(1){transform:rotate(-1.4deg)}
-.depo:nth-child(2){transform:rotate(1deg)}
-.depo:nth-child(3){transform:rotate(-.7deg)}
+/* Posicao de repouso via variavel: assim ela sobrevive a entrada, que termina
+   escrevendo transform:var(--pouso). Ver o bloco de REVELACAO. */
+.depo:nth-child(1){--pouso:rotate(-1.4deg);transform:var(--pouso)}
+.depo:nth-child(2){--pouso:rotate(1deg);transform:var(--pouso)}
+.depo:nth-child(3){--pouso:rotate(-.7deg);transform:var(--pouso)}
 /* aspas grandes, como marca d'agua da ficha */
 .depo::before{content:"”";position:absolute;top:-4px;right:18px;font-family:var(--display);
   font-size:6rem;font-weight:900;line-height:1;color:var(--laranja);opacity:.22;
@@ -497,7 +499,7 @@ button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:p
   font-size:.9rem;color:#fff;flex:0 0 auto;transition:transform .45s var(--ease)}
 .estrelas{display:inline-flex;color:var(--laranja);font-size:1.1rem;letter-spacing:3px}
 @media (hover:hover){
-  .depo:hover{transform:rotate(0deg) translateY(-10px);background:var(--branco);
+  .depo:hover{--pouso:rotate(0deg) translateY(-10px);transform:var(--pouso);background:var(--branco);
     box-shadow:14px 16px 0 0 var(--ink)}
   .depo:hover::before{opacity:.42}
   .depo:hover .avatar{transform:scale(1.1) rotate(-6deg)}
@@ -706,6 +708,13 @@ footer{position:relative;overflow:hidden;background:var(--ink);color:#fff;
    ela existiria na ida e sumiria na volta - o FAB desapareceria suave e
    reapareceria com um estalo. */
 body.menu-aberto .fab{opacity:0;transform:scale(.75);pointer-events:none}
+/*
+  Escondido tambem enquanto o hero esta na tela. Nao e so a colisao com o botao
+  "Como chegar" no celular: ali em cima o FAB repete, a um centimetro de
+  distancia, o mesmo WhatsApp que o botao principal do hero ja oferece. Ele
+  existe para quando aquele botao sai de vista - entao aparece quando ele sai.
+*/
+body.no-hero .fab{opacity:0;transform:scale(.75) translateY(10px);pointer-events:none}
 .fab::before,.fab::after{content:"";position:absolute;inset:-3px;border-radius:50%;
   background:var(--laranja);z-index:-1;animation:anel 2.4s ease-out infinite}
 .fab::after{animation-delay:1.2s}
@@ -734,10 +743,25 @@ body.menu-aberto .fab{opacity:0;transform:scale(.75);pointer-events:none}
    =========================================================================== */
 :root{--surge:cubic-bezier(.22,.68,.32,1);--dur-surge:.72s}
 
+/*
+  A lista de propriedades e explicita, e nao so opacity/transform, por um motivo
+  que custou caro descobrir: `transition` e atalho, e declarar o atalho RESETA
+  transition-property do elemento. Como estas regras vencem em especificidade,
+  todo elemento marcado perdia a propria transicao - o card da fachada deixou de
+  animar a sombra no hover, os itens de servico deixaram de animar a borda.
+  Nada disso aparece como erro; simplesmente para de acontecer.
+
+  O atraso da cascata fica SO em opacity e transform. Aplicado ao conjunto, um
+  hover num item com 400ms de atraso responderia 400ms depois do dedo.
+*/
 html.js [data-revela]{
   opacity:0;
-  transition:opacity var(--dur-surge) var(--surge),transform var(--dur-surge) var(--surge);
-  transition-delay:var(--atraso,0ms)}
+  transition:
+    opacity var(--dur-surge) var(--surge) var(--atraso,0ms),
+    transform var(--dur-surge) var(--surge) var(--atraso,0ms),
+    box-shadow .45s var(--ease),
+    background-color .4s,
+    border-color .4s}
 
 /* translate3d, e nao translateY, para a camada ir para a GPU e a entrada nao
    engasgar em celular mais fraco. */
@@ -748,12 +772,16 @@ html.js [data-revela="dir"]   {transform:translate3d(34px,0,0)}
 /* Blocos de midia entram com peso: sobem menos e crescem de leve. */
 html.js [data-revela="peso"]  {transform:translate3d(0,22px,0) scale(.965)}
 
-html.js [data-revela].dentro{opacity:1;transform:none}
+/*
+  `transform: none` no fim da entrada apagava a posicao de repouso do elemento.
+  As fichas de depoimento sao levemente tortas por design, e as tres ficavam
+  retas depois de entrar; o hover, que tambem e transform, perdia da mesma forma.
 
-/* Depois de revelado o elemento sai do caminho do compositor. Sem isto, cada
-   um dos ~70 alvos continua sendo candidato a camada propria pelo resto da
-   navegacao. */
-html.js [data-revela].dentro.pronto{transition:none;will-change:auto}
+  Com uma variavel, a entrada devolve o elemento a posicao que ELE declara em vez
+  de a lugar nenhum. Quem quiser um repouso diferente - ou um hover - so precisa
+  redefinir --pouso, sem disputar especificidade com esta regra.
+*/
+html.js [data-revela].dentro{opacity:1;transform:var(--pouso,none)}
 
 /*
   A LINHA QUE ABRE A SECAO.
@@ -801,35 +829,68 @@ html.js [data-fio].dentro::after{width:64px}
     O degrade so muda de eixo - de horizontal para vertical.
   */
   /*
-    A FAIXA DO HERO.
+    HERO: A FOTO OCUPA A TELA INTEIRA.
 
-    Uma medida so, usada nos dois lugares. Antes a altura da faixa e o espaco
-    reservado para ela eram numeros separados (44vh e 48vh), e bastava mexer num
-    para o texto encostar na foto - foi assim que nasceu a sobreposicao de 16px
-    que tive de caçar depois.
+    Ela era uma faixa na base, e ali chegava tarde - a pessoa lia o titulo, lia
+    o texto, passava pelos botoes e so entao encontrava a imagem, ja saindo da
+    secao. A foto e o unico elemento do hero que trabalha antes da leitura, e
+    estava posicionada depois dela.
 
-    118vw e o que ancora o recorte: as fotos sao retrato 1100x1400, e a faixa
-    larga e baixa que existia antes descartava mais da metade da altura de cada
-    uma - era por isso que quase sempre sobrava o meio de um corpo, sem cabeca.
-    Nesta proporcao o quadro fica perto do arquivo original e o assunto sobrevive.
+    Agora e camada de fundo cobrindo os 100% da altura, e o texto pousa por
+    cima. O que muda de lugar nao e a foto, e o VEU: um degrade creme que sobe
+    da base, transparente no alto (foto limpa, logo abaixo da navbar) e solido
+    embaixo, onde moram titulo e botoes.
+
+    Por que veu creme e nao texto branco sobre foto escura, que daria mais
+    contraste ainda: a marca e 70% clara por definicao, e o titulo em preto
+    sobre creme e o mesmo de todo o resto do site. Inverter so no celular
+    criaria duas marcas - uma clara no monitor, uma escura no telefone.
   */
-  :root{--faixa-hero:min(56vh,118vw)}
-  #topo{padding:130px 16px calc(var(--faixa-hero) + 22px)}
-  .hero-foto{--fade:linear-gradient(to bottom,
-      transparent 0%,      rgba(0,0,0,.04) 8%,  rgba(0,0,0,.16) 16%,
-      rgba(0,0,0,.40) 24%, rgba(0,0,0,.68) 32%, rgba(0,0,0,.88) 40%,
-      #000 48%);
-    top:auto;bottom:0;width:100%;height:var(--faixa-hero)}
-  /* Retrato cortado pelo centro corta o rosto. 34% puxa o quadro para cima. */
-  .hero-foto img{object-position:50% 34%}
+  #topo{align-items:flex-end;padding:120px 16px 40px}
+  .hero-foto{top:0;bottom:0;left:0;width:100%;height:100%;
+    -webkit-mask-image:none;mask-image:none}
+  /* Retrato cortado pelo centro corta o rosto. 32% puxa o quadro para cima. */
+  .hero-foto img{object-position:50% 32%}
+  /*
+    O veu. Transparente ate 24%, creme solido a partir de 45%.
+
+    Os 45% nao sao escolha estetica: o bloco de texto (etiqueta, titulo, apoio e
+    dois botoes) mede cerca de 395px e esta ancorado na base, entao ele comeca
+    aos 46% da tela. O veu tem de estar fechado ANTES disso. Na primeira versao
+    ele so fechava aos 66% e o paragrafo de apoio caia sobre pelo claro - ficou
+    ilegivel, que e o preco de tratar o degrade como enfeite em vez de medida.
+
+    As paradas intermediarias sao muitas de proposito: com duas so, aparece a
+    banda de Mach - uma borda fantasma atravessando a foto.
+  */
   .hero-foto::after{background:linear-gradient(to bottom,
-      transparent 74%,rgba(255,246,241,.7) 92%,var(--creme) 100%)}
+    rgba(255,246,241,0) 0%,    rgba(255,246,241,0) 24%,
+    rgba(255,246,241,.22) 30%, rgba(255,246,241,.50) 34%,
+    rgba(255,246,241,.74) 38%, rgba(255,246,241,.90) 41%,
+    rgba(255,246,241,.98) 43%, var(--creme) 45%)}
+
+  /* O texto encolhe para caber na metade de baixo sem empurrar o veu para
+     cima de mais foto do que o necessario. */
+  .hero-grid{max-width:100%}
+  #topo .badge{font-size:.68rem;letter-spacing:.1em;padding:9px 16px}
+  .t-hero{font-size:1.72rem}
+  #topo .lead{font-size:.92rem;line-height:1.6;margin-top:12px}
+  #topo .mt-5{margin-top:22px;gap:10px}
+  #topo .btn{padding:15px 24px}
+
+  /* Indicador sai da base (agora e area de texto) e vai para a zona limpa. */
+  /* #topo na frente para vencer a regra anterior deste mesmo breakpoint, que
+     ainda mandava os pontos para a base - onde agora e area de texto. */
+  #topo .dots{left:auto;right:16px;top:26%;bottom:auto;transform:none;flex-direction:column;gap:10px}
+  #topo .dots button.on{width:12px;height:32px}
+  /* O veu e os pontos do hero sao definidos adiante, na secao de acabamento
+     do mobile. As regras que viviam aqui - veu transparente ate 74% e pontos
+     na base - eram da epoca em que a foto era uma faixa embaixo, e como vinham
+     DEPOIS na folha, venciam as novas em silencio. */
   .emenda{display:none}
-  .dots{right:auto;left:50%;top:auto;bottom:20px;transform:translateX(-50%);flex-direction:row}
-  .dots button.on{height:11px;width:36px}
   /* fichas empilham e param de girar: torto em coluna unica vira bagunca */
   .trio{grid-template-columns:1fr;padding:28px 24px}
-  .depo:nth-child(1),.depo:nth-child(2),.depo:nth-child(3){transform:none}
+  .depo:nth-child(1),.depo:nth-child(2),.depo:nth-child(3){--pouso:none;transform:none}
 }
 @media (max-width:640px){
   .secao{padding:76px 16px}
@@ -842,7 +903,7 @@ html.js [data-fio].dentro::after{width:64px}
   .aviso{grid-template-columns:1fr;gap:20px;padding:30px 26px;border-radius:var(--r-card)}
   .aviso .patona{width:180px;right:-50px;bottom:-60px}
   .cel{padding:32px}
-  #topo{padding:120px 16px calc(var(--faixa-hero) + 18px)}
+  #topo{padding:112px 16px 34px}
   .btn{width:100%}
   .item-serv p{max-height:140px;opacity:1;margin-top:8px}
 }
@@ -910,27 +971,52 @@ html.js [data-fio].dentro::after{width:64px}
     border:2px solid var(--ink);border-radius:14px;background:var(--cinza)}
   .miniatura img{display:block;width:100%;height:100%;object-fit:cover}
 
-  /* --- 6. depoimentos: trilho horizontal ------------------------------- */
+  /* --- 6. depoimentos: um painel so, tres depoimentos a vista ----------- */
   /*
-    Empilhados, os tres cards ocupavam quase uma tela e meia de altura para
-    entregar tres paragrafos curtos.
+    Tres formatos foram testados aqui, e os dois primeiros falharam por motivos
+    opostos:
 
-    A troca tem um custo que vale dizer: empilhado, quem rola ve os tres sem
-    fazer nada; no trilho, ve um e precisa arrastar para os outros. Com apenas
-    tres depoimentos e 16% do proximo sempre a vista, o convite e claro o
-    bastante para o custo compensar. Com dez seria decisao diferente.
+    - cards empilhados: os tres visiveis, mas cada um com borda, sombra e 30px
+      de respiro proprio. Tela e meia de altura para entregar tres paragrafos
+      curtos, e a repeticao de "Avaliacao verificada / Publicada no Google" tres
+      vezes ocupando mais espaco que metade das citacoes;
+    - trilho horizontal: compacto, mas cobrava um arrasto para ver os outros
+      dois. Depoimento e a peca que convence, e nao se esconde o argumento
+      atras de um gesto que a pessoa pode nao fazer.
+
+    O que resolve os dois de uma vez nao e mudar o arranjo dos cards, e parar de
+    tratar cada depoimento como um card. Um painel unico, tres linhas separadas
+    por fio - a mesma leitura de um quadro de avaliacoes - devolve os tres a
+    vista, custa quase o mesmo espaco do trilho e recupera o par visual com o
+    bloco preto dos numeros, que fica logo acima.
+
+    A atribuicao repetida sai das linhas e vira uma so, no rodape do painel:
+    ela nunca foi informacao tres vezes, era a mesma frase tres vezes.
   */
-  .trio{display:flex;grid-template-columns:none;gap:14px;padding:26px 16px 10px;
-    margin:0 -16px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 16px;
-    -webkit-overflow-scrolling:touch;scrollbar-width:none}
-  .trio::-webkit-scrollbar{display:none}
-  .depo{flex:0 0 84%;scroll-snap-align:center;padding:26px 22px 22px}
-  /* Sem o flex:1 do desktop. Os cards continuam com a mesma altura (o trilho
-     iguala pelo mais alto), mas a sobra passa a se acumular embaixo, onde le
-     como respiro do card, em vez de abrir um vao entre a citacao e quem
-     assinou - que era onde ela caia e parecia esquecimento. */
-  .depo blockquote{flex:0 0 auto;font-size:.94rem;line-height:1.68}
-  .depo .assinatura{margin-top:18px;padding-top:16px}
+  .trio{display:block;grid-template-columns:none;gap:0;margin-top:22px;
+    padding:6px 20px 20px;border:2px solid var(--ink);border-radius:var(--r-glass);
+    background:var(--creme);box-shadow:8px 8px 0 0 var(--ink);overflow:hidden}
+
+  /* aspas como marca d'agua do painel, e nao de cada linha */
+  .trio{position:relative}
+  .trio::before{content:"”";position:absolute;top:-26px;right:14px;font-family:var(--display);
+    font-size:8rem;font-weight:900;line-height:1;color:var(--laranja);opacity:.16;
+    pointer-events:none}
+
+  .depo{flex:none;padding:20px 0 18px;border:0;border-radius:0;background:none;
+    box-shadow:none;transform:none}
+  .depo + .depo{border-top:2px solid rgba(0,0,0,.1)}
+  .depo::before{display:none}                       /* aspas agora sao do painel */
+  .depo blockquote{flex:0 0 auto;margin-top:10px;font-size:.92rem;line-height:1.6}
+  .depo .assinatura{margin-top:12px;padding-top:0;border-top:0;gap:9px}
+  .depo .avatar{width:26px;height:26px;font-size:.7rem;border-width:2px}
+  .depo .nome{font-size:.78rem}
+  .depo .origem{display:none}                       /* vira uma linha so, embaixo */
+  .estrelas{font-size:.95rem;letter-spacing:2px}
+
+  /* a atribuicao unica, colada no painel */
+  .ver-google{display:flex;justify-content:center;margin-top:18px;font-size:.78rem;
+    border-bottom-color:rgba(0,0,0,.28)}
 
   /* --- 3. entrada mais curta --------------------------------------------- */
   /* 30px de deslocamento numa tela de 375px e proporcionalmente o dobro do
@@ -1765,11 +1851,7 @@ html.js [data-fio].dentro::after{width:64px}
   /* --- o observador ------------------------------------------------------ */
   var alvos = document.querySelectorAll('[data-revela]');
 
-  function revelar(el){
-    el.classList.add('dentro');
-    /* tira o elemento do caminho do compositor quando a entrada termina */
-    setTimeout(function(){ el.classList.add('pronto'); }, 1400);
-  }
+  function revelar(el){ el.classList.add('dentro'); }
 
   if(!('IntersectionObserver' in window)){
     alvos.forEach(revelar);
@@ -1979,6 +2061,22 @@ html.js [data-fio].dentro::after{width:64px}
   document.addEventListener('keydown',function(e){
     if(e.key==='Escape'&&m.classList.contains('aberto')){ alternar(false); b.focus(); }
   });
+})();
+
+/* --- o FAB espera o hero sair de cena -------------------------------------- */
+(function(){
+  var topo = document.getElementById('topo');
+  if(!topo || !('IntersectionObserver' in window)) return;
+  var b = document.body;
+  b.classList.add('no-hero');   /* a pagina abre no hero */
+  new IntersectionObserver(function(e){
+    b.classList.toggle('no-hero', e[0].isIntersecting);
+  }, {
+    /* -60% no topo: o hero deixa de contar assim que a maior parte dele saiu,
+       e nao so quando o ultimo pixel some. O botao aparece junto com a secao
+       seguinte, e nao um tranco depois dela. */
+    rootMargin: '-60% 0px 0px 0px', threshold: 0
+  }).observe(topo);
 })();
 
 /* --- rolagem suave com folga para a navbar -------------------------------- */
