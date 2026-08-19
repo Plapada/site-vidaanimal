@@ -314,8 +314,22 @@ button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:p
    transicao, que e exatamente o "corte forcado" que se quer evitar. Com a
    curva suavizada nao existe ponto onde a foto "comeca".
    =========================================================================== */
+/*
+  O hero e mais alto que a tela pela MEDIDA DA SOBREPOSICAO, e nao por estetica.
+
+  A secao seguinte sobe 46px por cima dele para o encontro nao virar uma linha
+  reta. Com o hero em 100dvh exatos, esses 46px de creme arredondado ficavam
+  dentro da primeira tela - um fragmento branco cortando o pe da foto. Somando a
+  sobra a altura, a sobreposicao acontece logo ABAIXO da dobra: a primeira tela
+  e 100% foto, e o arredondado aparece quando a pessoa comeca a rolar.
+
+  As tres medidas saem da mesma variavel de proposito. Quando eram numeros
+  soltos, mexer em uma sem lembrar das outras encostou o texto na foto uma vez.
+*/
+:root{--sobra-hero:46px}
 #topo{position:relative;overflow:clip;display:flex;align-items:center;
-  min-height:100dvh;padding:160px 24px 90px;background:var(--creme)}
+  min-height:calc(100dvh + var(--sobra-hero));
+  padding:160px 24px calc(90px + var(--sobra-hero));background:var(--creme)}
 
 /* Uma coluna so - a direita agora e da foto. O min() e o que garante que o
    texto nunca invada a parte solida da imagem: 46vw termina antes de onde a
@@ -470,8 +484,9 @@ button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:p
   O fundo explicito e obrigatorio: sem ele a secao fica transparente, e o que
   aparece por baixo e justamente a foto que ela deveria cobrir.
 */
-#local{position:relative;z-index:1;margin-top:-46px;padding-top:96px;
-  background:var(--creme);border-radius:46px 46px 0 0}
+#local{position:relative;z-index:1;margin-top:calc(-1 * var(--sobra-hero));
+  padding-top:96px;background:var(--creme);
+  border-radius:var(--sobra-hero) var(--sobra-hero) 0 0}
 
 .local{display:grid;grid-template-columns:minmax(0,440px) 1fr;gap:64px;align-items:center}
 .fachada{position:relative;display:block;width:100%;aspect-ratio:3/4;overflow:hidden;
@@ -687,12 +702,38 @@ button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:p
 @media (hover:hover){
   .item-serv:not(.ativo):hover{border-color:rgba(0,0,0,.14);background:rgba(255,255,255,.5)}
 }
+/*
+  A FOTO SANGRA A METADE DIREITA INTEIRA.
+
+  Ela era um card com borda, canto e sombra - um objeto pousado ao lado da lista.
+  Agora e superficie: ocupa toda a altura da secao, encostada na borda da tela, e
+  se dissolve para dentro do cinza pela esquerda em vez de terminar numa moldura.
+
+  A dissolucao lateral e a mesma tecnica do hero, e pelo mesmo motivo: mascara
+  recorta o pixel de verdade, entao a foto NASCE do fundo da secao. Uma moldura
+  separa duas coisas; um degrade faz as duas serem a mesma. E quando a foto troca
+  ao correr o mouse pela lista, a troca acontece dentro de uma superficie
+  continua, e nao dentro de uma caixa - que e o que tira o ar de slideshow.
+
+  O painel sai do fluxo, mas a coluna da grade continua reservada: sem isso o
+  texto correria por baixo da foto.
+*/
+#servicos > .painel-foto{position:absolute;top:0;right:0;bottom:0;width:50%;
+  z-index:0;aspect-ratio:auto;overflow:hidden;border:0;border-radius:0;box-shadow:none;
+  --dissolve:linear-gradient(93deg,
+    transparent 0%,      rgba(0,0,0,.04) 8%,  rgba(0,0,0,.14) 16%,
+    rgba(0,0,0,.32) 24%, rgba(0,0,0,.54) 32%, rgba(0,0,0,.74) 40%,
+    rgba(0,0,0,.89) 48%, rgba(0,0,0,.97) 56%, #000 64%);
+  -webkit-mask-image:var(--dissolve);mask-image:var(--dissolve)}
+
 .painel-foto{position:sticky;top:120px;aspect-ratio:4/4.4;overflow:hidden;
   border:3px solid var(--ink);border-radius:var(--r-card);box-shadow:10px 10px 0 0 var(--laranja)}
 .painel-foto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;
   transform:scale(1.07);transition:opacity 1s ease,transform 1.6s var(--ease)}
 .painel-foto img.on{opacity:1;transform:scale(1)}
 .painel-foto .tag{transition:opacity .5s ease}
+#servicos > .painel-foto .tag{padding:34px 40px 40px;
+  background:linear-gradient(to top,rgba(0,0,0,.9),rgba(0,0,0,.45) 45%,transparent)}
 .painel-foto .tag{position:absolute;left:0;right:0;bottom:0;padding:26px 28px;
   background:linear-gradient(to top,rgba(0,0,0,.88),transparent);color:#fff;
   font-family:var(--display);font-size:1.1rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
@@ -924,7 +965,10 @@ html.js [data-revela].dentro{opacity:1;transform:var(--pouso,none)}
     sobre creme e o mesmo de todo o resto do site. Inverter so no celular
     criaria duas marcas - uma clara no monitor, uma escura no telefone.
   */
-  #topo{align-items:flex-end;padding:120px 16px 40px}
+  /* No celular o texto e ancorado na base, entao a sobra entra no padding para
+     os botoes pararem 34px acima da DOBRA, e nao do fim do hero. */
+  :root{--sobra-hero:34px}
+  #topo{align-items:flex-end;padding:120px 16px calc(34px + var(--sobra-hero))}
   /* Retrato cortado pelo centro corta o rosto. 32% puxa o quadro para cima. */
   .hero-foto img{object-position:50% 32%}
   /*
@@ -981,7 +1025,7 @@ html.js [data-revela].dentro{opacity:1;transform:var(--pouso,none)}
 }
 @media (max-width:640px){
   .secao{padding:76px 16px}
-  #local{margin-top:-32px;padding-top:70px;border-radius:32px 32px 0 0}
+  #local{padding-top:70px}
   .sinais{grid-template-columns:1fr}
   .bloco-prova{border-radius:var(--r-card);box-shadow:8px 8px 0 0 rgba(0,0,0,.5)}
   .faixa-num{grid-template-columns:1fr}
@@ -991,7 +1035,7 @@ html.js [data-revela].dentro{opacity:1;transform:var(--pouso,none)}
   .aviso{grid-template-columns:1fr;gap:20px;padding:30px 26px;border-radius:var(--r-card)}
   .aviso .patona{width:180px;right:-50px;bottom:-60px}
   .cel{padding:32px}
-  #topo{padding:112px 16px 34px}
+  #topo{padding:112px 16px calc(28px + var(--sobra-hero))}
   .btn{width:100%}
   .item-serv p{max-height:140px;opacity:1;margin-top:8px}
 }
@@ -1258,13 +1302,24 @@ html.js [data-revela].dentro{opacity:1;transform:var(--pouso,none)}
   <div class="wrap hero-grid">
     <div>
       <span class="badge">24 horas &middot; Jaboatão dos Guararapes</span>
+      <!--
+        A headline anterior ("Por isso a gente nao fecha") ocupava justamente o
+        territorio que a pesquisa aponta como COMMODITY: quatro casas em Jaboatao
+        anunciam 24 horas, e anunciar de novo nao diferencia ninguem.
+
+        Esta segue a construcao que a propria marca usa nas artes - pergunta
+        concreta do tutor, resposta curta ("Seu pet muda de comportamento quando
+        chega a clinica? Isso e mais comum do que voce imagina"). E troca o
+        anuncio pelo fato fisico: porta aberta e uma coisa verificavel, "nao
+        fechamos" e uma promessa igual a de todo mundo.
+      -->
       <h1 class="t-hero mt-3">
-        Seu pet não escolhe a hora.<br>
-        Por isso a gente <span class="laranja">não fecha</span>.
+        Seu pet passou mal às três da manhã?<br>
+        <span class="laranja">A porta está aberta.</span>
       </h1>
       <p class="lead mt-3 max-520">
-        Clínica veterinária aberta 24 horas no Centro de Jaboatão.
-        Emergência, exames, internação e pet shop na mesma casa.
+        Clínica veterinária 24 horas no Centro de Jaboatão. Emergência, exames,
+        internação e pet shop na mesma casa — com 4,7 no Google, em 407 avaliações.
       </p>
       <div class="mt-5" style="display:flex;gap:14px;flex-wrap:wrap">
         <a class="btn btn-cta" target="_blank" rel="noopener"
@@ -1552,6 +1607,20 @@ html.js [data-revela].dentro{opacity:1;transform:var(--pouso,none)}
 
 <!-- ======================= SERVIÇOS ======================= -->
 <section id="servicos" class="secao bg-cinza">
+  <!--
+    Fora do .wrap de proposito: o wrap trava em 1200px e e posicionado, entao
+    um filho absoluto dele nunca alcanca a borda da tela nem a altura cheia da
+    secao. Como filho direto, ancora na secao.
+  -->
+    <div class="painel-foto" id="painel">
+      <img class="on" data-i="0" src="https://images.unsplash.com/photo-1770836037275-38b44e4b101f?auto=format&fit=crop&w=800&h=880&q=80" alt="Atendimento de emergência na Vida Animal">
+      <img data-i="1" src="https://images.unsplash.com/photo-1654895622553-cf4a29be9499?auto=format&fit=crop&w=800&h=880&q=80" alt="Pet internado em observação na Vida Animal">
+      <img data-i="2" src="https://images.unsplash.com/photo-1770836037816-4445dbd449fd?auto=format&fit=crop&w=800&h=880&q=80" alt="Exame sendo realizado na Vida Animal">
+      <img data-i="3" src="https://images.unsplash.com/photo-1733783489145-f3d3ee7a9ccf?auto=format&fit=crop&w=800&h=880&q=80" alt="Atendimento com especialista na Vida Animal">
+      <img data-i="4" src="https://images.unsplash.com/photo-1588626863948-1d7978596f17?auto=format&fit=crop&w=800&h=880&q=80" alt="Banho e tosa na Vida Animal">
+      <img data-i="5" src="https://images.unsplash.com/photo-1596272875729-ed2ff7d6d9c5?auto=format&fit=crop&w=800&h=880&q=80" alt="Pet shop da Vida Animal">
+      <span class="tag" id="tag">Emergência 24h</span>
+    </div>
   <div class="wrap serv-grid">
     <div>
       <span class="badge">Serviços</span>
@@ -1602,15 +1671,6 @@ html.js [data-revela].dentro{opacity:1;transform:var(--pouso,none)}
       </div>
     </div>
 
-    <div class="painel-foto" id="painel">
-      <img class="on" data-i="0" src="https://images.unsplash.com/photo-1770836037275-38b44e4b101f?auto=format&fit=crop&w=800&h=880&q=80" alt="Atendimento de emergência na Vida Animal">
-      <img data-i="1" src="https://images.unsplash.com/photo-1654895622553-cf4a29be9499?auto=format&fit=crop&w=800&h=880&q=80" alt="Pet internado em observação na Vida Animal">
-      <img data-i="2" src="https://images.unsplash.com/photo-1770836037816-4445dbd449fd?auto=format&fit=crop&w=800&h=880&q=80" alt="Exame sendo realizado na Vida Animal">
-      <img data-i="3" src="https://images.unsplash.com/photo-1733783489145-f3d3ee7a9ccf?auto=format&fit=crop&w=800&h=880&q=80" alt="Atendimento com especialista na Vida Animal">
-      <img data-i="4" src="https://images.unsplash.com/photo-1588626863948-1d7978596f17?auto=format&fit=crop&w=800&h=880&q=80" alt="Banho e tosa na Vida Animal">
-      <img data-i="5" src="https://images.unsplash.com/photo-1596272875729-ed2ff7d6d9c5?auto=format&fit=crop&w=800&h=880&q=80" alt="Pet shop da Vida Animal">
-      <span class="tag" id="tag">Emergência 24h</span>
-    </div>
   </div>
 </section>
 
@@ -1695,7 +1755,7 @@ html.js [data-revela].dentro{opacity:1;transform:var(--pouso,none)}
   <div class="wrap">
     <div class="max-680" style="margin-bottom:48px">
       <span class="badge">Contato</span>
-      <h2 class="t-sec mt-3">A gente está aqui. <span class="laranja">Agora</span>.</h2>
+      <h2 class="t-sec mt-3">Não precisa esperar <span class="laranja">amanhecer</span>.</h2>
     </div>
 
     <div class="contato">
