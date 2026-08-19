@@ -70,8 +70,17 @@
 <meta property="og:image:alt" content="Vida Animal — clínica veterinária 24 horas em Jaboatão dos Guararapes" />
 <meta name="twitter:card" content="summary_large_image" />
 
-<!-- Favicon em SVG embutido: sem requisicao extra e sem arquivo para perder. -->
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23F2570A'/%3E%3Cg fill='%23fff'%3E%3Cellipse cx='23' cy='23' rx='6' ry='8'/%3E%3Cellipse cx='41' cy='23' rx='6' ry='8'/%3E%3Cellipse cx='13' cy='36' rx='5.5' ry='7'/%3E%3Cellipse cx='51' cy='36' rx='5.5' ry='7'/%3E%3Cpath d='M32 33c7 0 13 6 13 12 0 5-4 8-8 6l-5-2-5 2c-4 2-8-1-8-6 0-6 6-12 13-12z'/%3E%3C/g%3E%3C/svg%3E" />
+<!--
+  FAVICON. Arquivo separado, e nao data URI embutida, por dois motivos: ele
+  carrega um PNG dentro (a marca extraida do logo) e ficaria longo demais na
+  linha, e como arquivo o navegador o guarda em cache entre paginas.
+
+  A troca claro/escuro acontece DENTRO do SVG, numa media query propria. O
+  atributo `media` em <link rel="icon"> tem suporte irregular; media query
+  dentro do arquivo e avaliada por Chrome, Firefox e Safari.
+
+-->
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
 
 <!--
   ============================================================================

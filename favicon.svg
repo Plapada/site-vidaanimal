@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!--
+    FAVICON DA VIDA ANIMAL — a marca do "A", com o cao e o gato formando o vertice.
+
+    Duas coisas resolvidas aqui:
+
+    1. TROCA DE COR POR TEMA. O `media` em <link rel="icon"> tem suporte irregular
+       entre navegadores. Media query DENTRO do SVG e avaliada por Chrome, Firefox
+       e Safari, entao a troca acontece no proprio arquivo: preto quando a barra
+       do navegador esta clara, branco quando esta escura.
+
+    2. O ARQUIVO DE ORIGEM NAO TEM ALFA. O PNG do logo e branco sobre preto
+       chapado. Aqui ele entra como MASCARA de luminancia: o branco da arte vira
+       area visivel, o preto vira transparente, e a cor passa a ser pintada por
+       um retangulo por baixo. Assim a mesma arte serve aos dois temas sem
+       precisar de duas versoes do arquivo.
+
+    A marca foi extraida do PNG e reduzida a 64px por `favicon-builder.html`.
+  -->
+  <style>
+    .marca { fill: #000000 }
+    @media (prefers-color-scheme: dark) { .marca { fill: #FFFFFF } }
+  </style>
+  <mask id="m">
+    <image width="64" height="64" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAADEElEQVR4AeyWC27EIAxE9/X+d97WQTTU/GwCq1RBqkPwb8YDTfv1er3eTzYR4Gf+5/5sAZ579mHyfQOCDs997hvw3LMPk+8bEHR47nPfgOeefZh834Cgw/9+vt/vVzTvJK4bEEHi6gVbkS9crvR1CaCBroLrft79CL7GcAkA6Prj6mXODzhKw0POr0fFJUCtWYlMLfeqX7DErvaJ9U0BBEhbLNRrzNP+mXvB8Pbr1TQFAP+V6gF6B5B86Skm7zWDwFXyUoPgr9U1BagV9fyRQC+vF/f08eSmuF0BoK1g2ky/Cynts+6v1EYM6HPvChCbja7eQSRfbBQv1kF/eMntCjCDjLWHNU+Itwxsw0uPrgCSNMNaw0lMbAaO9PD0MgsAdlWFRMkiMVnFSjmf9pkFmEEY+POfY+wJ18XVwsXe2q/3TQGsTXRTz/4TGC0+TQFahd4Y/D19b701H3gBR7pF3KoAluIDZcJDsCCQvtpOeolZ+xQF8DSwAEE+HOQ+Sy9PDvQxigJ4QKy5qahQJgZlvxWjlNfzZQKkRHvFljjUh4IzNhvXwk1yMgHEaTU4B2jVpMNBuwba8RaOjqW4Ohb3mQDQJwD8fmljo9EV+C3tEQam4UbQTAAJQACC8io50YD4mq2w5k8fcAgB/TUjpRxFAVTOtC3Q7SW3API8yH3dZoaEKQJATg5yX40P2HNrPUb9UwSogctpxhj4hgRffsTxrtMEgJMwnO9WQnDWpMJJPZwx2c+0aQJoUukQMDYAjNVpLq29W4B0MN0YOL7O2i81FkvrJD/dr3p3CyBEeuR6celhNcCaOpQ3JMAQ0kDRTCFr8NMF0KSB49cC7GuN7Ar/dAFSkkC6HXrXgg41aRQtFaCB2wzBdeGaAElwqgCrTyvhXX31BqYKkILDtVOEs36lsNMEWElShF3V3y0AcHzVhVQ0TQ6IoUsrzOnTIuEWoNQMOESBsJZyRn0QegKjLZp1UwRoItw8uAW4+QEtp7dvwHKJbw6wb8DND2g5vX0Dlkt8c4B9A25+QMvp/fsbcFWhbwAAAP//vbYnoQAAAAZJREFUAwCdoWZQeT74lQAAAABJRU5ErkJggg=="/>
+  </mask>
+  <rect class="marca" width="64" height="64" mask="url(#m)"/>
+</svg>
