@@ -718,12 +718,29 @@ button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:p
   O painel sai do fluxo, mas a coluna da grade continua reservada: sem isso o
   texto correria por baixo da foto.
 */
-#servicos > .painel-foto{position:absolute;top:0;right:0;bottom:0;width:50%;
+/*
+  A DISSOLUCAO PRECISA DE PISTA.
+
+  Com o painel em 50% e a rampa fechando aos 64%, a travessia inteira acontecia
+  em 458px - e, pior, comecava a ganhar corpo logo nos primeiros 100px. O olho
+  le isso como borda: nao porque exista uma linha, mas porque a passagem de nada
+  para alguma coisa acontece rapido demais para parecer degrade.
+
+  Duas mudancas, e as duas sao de ESPACO, nao de opacidade: o painel comeca mais
+  a esquerda (62% em vez de 50%) e a rampa so fecha aos 76%. A travessia passa de
+  458px para ~674px, e as primeiras paradas ficam quase imperceptiveis - aos 18%
+  do caminho a foto ainda esta em 6%.
+
+  O trecho onde a lista mora continua limpo: na borda direita dela a mascara esta
+  em ~4%, abaixo do que o olho separa do fundo.
+*/
+#servicos > .painel-foto{position:absolute;top:0;right:0;bottom:0;width:62%;
   z-index:0;aspect-ratio:auto;overflow:hidden;border:0;border-radius:0;box-shadow:none;
   --dissolve:linear-gradient(93deg,
-    transparent 0%,      rgba(0,0,0,.04) 8%,  rgba(0,0,0,.14) 16%,
-    rgba(0,0,0,.32) 24%, rgba(0,0,0,.54) 32%, rgba(0,0,0,.74) 40%,
-    rgba(0,0,0,.89) 48%, rgba(0,0,0,.97) 56%, #000 64%);
+    transparent 0%,      rgba(0,0,0,.02) 10%, rgba(0,0,0,.06) 18%,
+    rgba(0,0,0,.13) 26%, rgba(0,0,0,.24) 34%, rgba(0,0,0,.38) 42%,
+    rgba(0,0,0,.54) 50%, rgba(0,0,0,.70) 58%, rgba(0,0,0,.84) 66%,
+    rgba(0,0,0,.95) 72%, #000 76%);
   -webkit-mask-image:var(--dissolve);mask-image:var(--dissolve)}
 
 .painel-foto{position:sticky;top:120px;aspect-ratio:4/4.4;overflow:hidden;
