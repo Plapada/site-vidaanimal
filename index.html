@@ -637,9 +637,28 @@ button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:p
 .faq-item .q{font-family:var(--display);font-size:1.02rem;font-weight:700;line-height:1.4;color:var(--ink)}
 .faq-item .mais{display:flex;align-items:center;justify-content:center;width:36px;height:36px;
   border-radius:50%;background:var(--laranja);color:var(--ink);flex:0 0 auto;transition:transform .3s}
-.faq-item.aberto .mais{transform:rotate(45deg)}
-.faq-item .r{display:none;padding:0 24px 24px;font-size:.95rem;line-height:1.75}
-.faq-item.aberto .r{display:block}
+.faq-item.aberto .mais{transform:rotate(45deg);background:var(--laranja);color:var(--ink)}
+.faq-item.aberto .q{color:var(--laranja-escuro)}
+/*
+  ABERTURA DO ACORDEAO.
+
+  Era display:none -> block, que nao e animavel: a resposta simplesmente
+  aparecia, e o card dava um pulo de altura. E o que fazia a abertura parecer
+  bruta - nao era a duracao errada, era a ausencia de qualquer duracao.
+
+  max-height medido em JS, e nao um valor chutado grande: com um teto folgado
+  (400px numa resposta de 120px) a transicao gasta dois tercos do tempo
+  percorrendo espaco vazio, e a abertura fica rapida no comeco e parada no fim.
+  Com a altura real, a curva descreve o movimento que os olhos veem.
+
+  O padding mora no .r-in, criado pelo JS. Preso ao .r, ele continuaria
+  ocupando altura com o item fechado e as respostas vazariam para fora.
+*/
+.faq-item .r{max-height:0;overflow:hidden;font-size:.95rem;line-height:1.75;
+  transition:max-height .5s var(--surge)}
+.faq-item .r-in{padding:0 24px 24px;opacity:0;transform:translate3d(0,-8px,0);
+  transition:opacity .34s ease .06s,transform .4s var(--surge) .06s}
+.faq-item.aberto .r-in{opacity:1;transform:none}
 
 /* ===========================================================================
    CONTATO
@@ -675,8 +694,18 @@ footer{position:relative;overflow:hidden;background:var(--ink);color:#fff;
 .fab{position:fixed;right:var(--fab-borda,32px);bottom:var(--fab-borda,32px);z-index:9999;display:flex;align-items:center;
   justify-content:center;width:62px;height:62px;border-radius:50%;background:var(--laranja);
   color:var(--ink);border:3px solid var(--ink);box-shadow:4px 4px 0 0 var(--ink);
-  transition:transform .3s var(--ease)}
+  transition:transform .3s var(--ease),opacity .25s var(--ease)}
 .fab:hover{transform:scale(1.08) rotate(8deg)}
+/*
+  Com o menu aberto o FAB ficava por cima do overlay - z-index 9999 contra 999 -
+  e a tela passava a ter dois botoes de WhatsApp ao mesmo tempo, um deles
+  cobrindo o outro no canto. Some enquanto o menu esta aberto: a acao nao se
+  perde, ela ja esta no menu.
+*/
+/* A transicao mora na regra base, e nao aqui: declarada so no estado aberto,
+   ela existiria na ida e sumiria na volta - o FAB desapareceria suave e
+   reapareceria com um estalo. */
+body.menu-aberto .fab{opacity:0;transform:scale(.75);pointer-events:none}
 .fab::before,.fab::after{content:"";position:absolute;inset:-3px;border-radius:50%;
   background:var(--laranja);z-index:-1;animation:anel 2.4s ease-out infinite}
 .fab::after{animation-delay:1.2s}
@@ -733,7 +762,19 @@ html.js [data-revela].dentro.pronto{transition:none;will-change:auto}
   num site de rolagem longa ele marca "comecou coisa nova aqui" sem precisar
   de mais um titulo ou mais uma borda.
 */
-.secao > .wrap{position:relative}
+/*
+  A ancora precisa ser o PROPRIO titulo.
+
+  Antes o h2 era position:static, entao o ::after subia procurando ancestral
+  posicionado e achava o .wrap - o bloco da secao inteira. `bottom:-14px`
+  passou a significar "14px abaixo do fim da secao" em vez de "14px abaixo do
+  titulo", e o fio ia parar 600px longe de onde deveria, no rodape da secao.
+  Um position:relative no titulo e o que amarra o pseudo-elemento nele.
+*/
+/* Só position:relative. Um display:inline-block aqui encolheria o h2 para a
+   largura do texto e mudaria onde cada titulo quebra de linha - efeito colateral
+   grande para nada, ja que o fio tem largura fixa de 64px. */
+html.js [data-fio]{position:relative}
 html.js [data-fio]::after{content:"";position:absolute;left:0;bottom:-14px;height:3px;width:0;
   border-radius:2px;background:var(--laranja);
   transition:width .9s var(--surge);transition-delay:calc(var(--atraso,0ms) + 180ms)}
@@ -759,12 +800,28 @@ html.js [data-fio].dentro::after{width:64px}
     titulo e a unica coisa que precisa ser lida de primeira.
     O degrade so muda de eixo - de horizontal para vertical.
   */
-  #topo{padding:134px 16px 48vh}
+  /*
+    A FAIXA DO HERO.
+
+    Uma medida so, usada nos dois lugares. Antes a altura da faixa e o espaco
+    reservado para ela eram numeros separados (44vh e 48vh), e bastava mexer num
+    para o texto encostar na foto - foi assim que nasceu a sobreposicao de 16px
+    que tive de caçar depois.
+
+    118vw e o que ancora o recorte: as fotos sao retrato 1100x1400, e a faixa
+    larga e baixa que existia antes descartava mais da metade da altura de cada
+    uma - era por isso que quase sempre sobrava o meio de um corpo, sem cabeca.
+    Nesta proporcao o quadro fica perto do arquivo original e o assunto sobrevive.
+  */
+  :root{--faixa-hero:min(56vh,118vw)}
+  #topo{padding:130px 16px calc(var(--faixa-hero) + 22px)}
   .hero-foto{--fade:linear-gradient(to bottom,
-      transparent 0%,      rgba(0,0,0,.04) 10%, rgba(0,0,0,.16) 20%,
-      rgba(0,0,0,.40) 30%, rgba(0,0,0,.68) 40%, rgba(0,0,0,.88) 50%,
-      #000 60%);
-    top:auto;bottom:0;width:100%;height:44vh}
+      transparent 0%,      rgba(0,0,0,.04) 8%,  rgba(0,0,0,.16) 16%,
+      rgba(0,0,0,.40) 24%, rgba(0,0,0,.68) 32%, rgba(0,0,0,.88) 40%,
+      #000 48%);
+    top:auto;bottom:0;width:100%;height:var(--faixa-hero)}
+  /* Retrato cortado pelo centro corta o rosto. 34% puxa o quadro para cima. */
+  .hero-foto img{object-position:50% 34%}
   .hero-foto::after{background:linear-gradient(to bottom,
       transparent 74%,rgba(255,246,241,.7) 92%,var(--creme) 100%)}
   .emenda{display:none}
@@ -785,8 +842,7 @@ html.js [data-fio].dentro::after{width:64px}
   .aviso{grid-template-columns:1fr;gap:20px;padding:30px 26px;border-radius:var(--r-card)}
   .aviso .patona{width:180px;right:-50px;bottom:-60px}
   .cel{padding:32px}
-  #topo{padding:124px 16px 44vh}
-  .hero-foto{height:40vh}
+  #topo{padding:120px 16px calc(var(--faixa-hero) + 18px)}
   .btn{width:100%}
   .item-serv p{max-height:140px;opacity:1;margin-top:8px}
 }
@@ -836,6 +892,46 @@ html.js [data-fio].dentro::after{width:64px}
   .dots button::after{content:"";position:absolute;inset:-16px}
   .dots button.on{width:40px;height:13px}
 
+  /* --- 4. o fio de abertura sai --------------------------------------- */
+  /* Ele marca "comecou secao nova" para quem ve varias secoes de uma vez. Numa
+     tela onde cabe pouco mais que um titulo por vez, essa leitura nao existe -
+     sobra so um risco solto embaixo do texto. */
+  html.js [data-fio]::after{display:none}
+
+  /* --- 5. servicos: miniatura em cada card ----------------------------- */
+  .item-serv{align-items:flex-start;gap:14px;padding:12px 14px;border-radius:18px}
+  .item-serv .n{display:none}          /* a foto ocupa o lugar do icone */
+  .item-serv h3{font-size:.98rem}
+  .item-serv p{max-height:none;opacity:1;margin-top:6px;font-size:.86rem}
+  /* Sem painel para atualizar, "ativo" nao significa mais nada: o deslocamento
+     lateral so faria o card pular ao toque, sem nada em troca. */
+  .item-serv.ativo{transform:none;background:var(--branco)}
+  .miniatura{flex:0 0 88px;display:block;width:88px;height:88px;overflow:hidden;
+    border:2px solid var(--ink);border-radius:14px;background:var(--cinza)}
+  .miniatura img{display:block;width:100%;height:100%;object-fit:cover}
+
+  /* --- 6. depoimentos: trilho horizontal ------------------------------- */
+  /*
+    Empilhados, os tres cards ocupavam quase uma tela e meia de altura para
+    entregar tres paragrafos curtos.
+
+    A troca tem um custo que vale dizer: empilhado, quem rola ve os tres sem
+    fazer nada; no trilho, ve um e precisa arrastar para os outros. Com apenas
+    tres depoimentos e 16% do proximo sempre a vista, o convite e claro o
+    bastante para o custo compensar. Com dez seria decisao diferente.
+  */
+  .trio{display:flex;grid-template-columns:none;gap:14px;padding:26px 16px 10px;
+    margin:0 -16px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 16px;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .trio::-webkit-scrollbar{display:none}
+  .depo{flex:0 0 84%;scroll-snap-align:center;padding:26px 22px 22px}
+  /* Sem o flex:1 do desktop. Os cards continuam com a mesma altura (o trilho
+     iguala pelo mais alto), mas a sobra passa a se acumular embaixo, onde le
+     como respiro do card, em vez de abrir um vao entre a citacao e quem
+     assinou - que era onde ela caia e parecia esquecimento. */
+  .depo blockquote{flex:0 0 auto;font-size:.94rem;line-height:1.68}
+  .depo .assinatura{margin-top:18px;padding-top:16px}
+
   /* --- 3. entrada mais curta --------------------------------------------- */
   /* 30px de deslocamento numa tela de 375px e proporcionalmente o dobro do
      que e num monitor. A distancia cai para acompanhar. */
@@ -845,14 +941,6 @@ html.js [data-fio].dentro::after{width:64px}
   html.js [data-revela="peso"]{transform:translate3d(0,16px,0) scale(.98)}
   :root{--dur-surge:.6s}
 
-  /* --- 4. servicos: a foto sobe para junto do que ela ilustra ------------- */
-  /* O JS move o painel para logo abaixo do texto de abertura. Grudado no topo,
-     ele fica a vista enquanto a lista passa por baixo, e cada servico que
-     cruza o meio da tela troca a foto sozinho - sem depender de toque. */
-  #servicos .painel-foto{position:sticky;top:92px;z-index:2;
-    aspect-ratio:16/10;max-height:32vh;margin:26px 0 4px}
-  #servicos .painel-foto .tag{padding:16px 20px;font-size:.82rem}
-  .item-serv{scroll-margin-top:140px}
 }
 
 @media (prefers-reduced-motion:reduce){
@@ -860,8 +948,15 @@ html.js [data-fio].dentro::after{width:64px}
     scroll-behavior:auto!important}
 }
 
+/*
+  padding-top de 118px, e nao centralizacao pura: a pilula da navbar termina em
+  88px e continua visivel por cima do menu (ela tem z-index maior, de proposito,
+  para o logo e o X continuarem alcancaveis). Com padding de 24px, o primeiro
+  item nascia 26px abaixo dela - praticamente a mesma folga que separa um item
+  do outro, e por isso o header lia como se fosse mais um item da lista.
+*/
 #menu{position:fixed;inset:0;z-index:999;display:none;flex-direction:column;align-items:center;
-  justify-content:center;gap:28px;background:var(--ink);padding:24px}
+  justify-content:center;gap:22px;background:var(--ink);padding:118px 24px 40px}
 #menu.aberto{display:flex}
 /*
   Padding vertical e o que transforma a linha em alvo. Sem ele o link tinha
@@ -873,7 +968,9 @@ html.js [data-fio].dentro::after{width:64px}
 #menu a:hover,#menu a:active{color:var(--laranja)}
 /* O botao de conversa some da navbar no mobile. Se ele nao voltar aqui, o menu
    aberto e a unica tela do site sem a acao principal a vista. */
-#menu .btn{margin-top:14px;width:auto;padding:16px 30px}
+/* O botao estava com 355x85 - quase a largura inteira da tela e mais alto que
+   qualquer item do menu, o que fazia dele o assunto da tela em vez do atalho. */
+#menu .btn{width:auto;min-width:0;margin-top:16px;padding:13px 24px;font-size:.76rem}
 </style>
 </head>
 
@@ -1766,81 +1863,121 @@ html.js [data-fio].dentro::after{width:64px}
   });
   document.getElementById('lista').addEventListener('mouseleave',function(){clearTimeout(espera)});
 
-  /* --- no celular a foto sobe e passa a seguir a rolagem ------------------
-     Duas coisas mudam, e as duas resolvem o mesmo problema: no layout de
-     coluna unica o painel caia depois da lista inteira, entao tocar num
-     servico trocava uma imagem que estava fora da tela.
+  /* --- no celular cada servico carrega a propria foto ---------------------
+     O painel compartilhado saiu. Ele era `sticky`, e sticky por definicao fica
+     POR CIMA do que rola por baixo: a lista passava sob a foto e o resultado
+     era imagem em cima de texto, colada na navbar.
 
-     1. O painel e movido para logo abaixo do texto de abertura. Com o CSS
-        grudando ele no topo, fica a vista enquanto a lista corre por baixo.
-     2. Cada servico se seleciona quando cruza o meio da tela. Nao ha mouse
-        para passar por cima, e exigir toque para ver a foto trocar seria
-        exigir que a pessoa descubra sozinha que aquilo e tocavel.
+     Trocado por miniatura dentro de cada item. Some a sobreposicao, some a
+     dependencia de descobrir que a lista era tocavel, e some tambem a
+     necessidade de interagir: com seis fotos visiveis de uma vez, nao ha o que
+     "acionar". O JS so realoca as imagens que ja estavam na pagina - nenhuma
+     requisicao a mais.
   ----------------------------------------------------------------------- */
   (function(){
-    var painel = document.getElementById('painel'),
-        abertura = document.querySelector('#servicos .lead');
-    if(!painel || !abertura) return;
-
-    /* Guardar de onde ele veio, para saber voltar. Sem isto, quem gira o
-       celular para paisagem fica com a foto encalhada dentro da coluna de
-       texto - o layout de duas colunas volta, e ela nao. */
-    var casa = painel.parentElement, vizinho = painel.nextElementSibling;
+    var painel = document.getElementById('painel');
+    if(!painel) return;
     var estreito = matchMedia('(max-width:900px)');
+    var casa = painel.parentElement;
+    var fotos = [].slice.call(painel.querySelectorAll('img'));
 
-    function arrumar(){
-      if(estreito.matches) abertura.insertAdjacentElement('afterend', painel);
-      else casa.insertBefore(painel, vizinho);
+    function paraOsCards(){
+      itens.forEach(function(item, n){
+        if(item.querySelector('.miniatura')) return;
+        var img = fotos[n];
+        if(!img) return;
+        var caixa = document.createElement('span');
+        caixa.className = 'miniatura';
+        caixa.appendChild(img);
+        item.insertBefore(caixa, item.firstChild);
+      });
+      painel.style.display = 'none';
     }
+    function paraOPainel(){
+      fotos.forEach(function(img){ painel.insertBefore(img, painel.querySelector('.tag')); });
+      itens.forEach(function(item){
+        var c = item.querySelector('.miniatura');
+        if(c) c.remove();
+      });
+      painel.style.display = '';
+    }
+    function arrumar(){ estreito.matches ? paraOsCards() : paraOPainel(); }
     arrumar();
     estreito.addEventListener('change', arrumar);
-
-    if(!('IntersectionObserver' in window)) return;
-    /* Faixa de deteccao no meio da tela: o item so vale quando esta sendo
-       lido, nao quando encosta na beirada. */
-    var olho = new IntersectionObserver(function(entradas){
-      entradas.forEach(function(e){
-        if(e.isIntersecting) selecionar(+e.target.getAttribute('data-i'));
-      });
-    }, { rootMargin: '-48% 0px -48% 0px', threshold: 0 });
-    function ligarOlho(){
-      itens.forEach(function(item){
-        if(estreito.matches) olho.observe(item); else olho.unobserve(item);
-      });
-    }
-    ligarOlho();
-    estreito.addEventListener('change', ligarOlho);
   })();
 })();
 
-/* --- accordion: um aberto por vez ----------------------------------------- */
-document.querySelectorAll('.faq-item button').forEach(function(b){
-  b.onclick=function(){
-    var item=b.parentElement, jaAberto=item.classList.contains('aberto');
-    document.querySelectorAll('.faq-item').forEach(function(x){
-      x.classList.remove('aberto');
-      x.querySelector('button').setAttribute('aria-expanded','false');
+/* --- accordion: um aberto por vez, com altura medida ----------------------
+   O max-height e calculado a cada abertura, e nao fixado no CSS. Duas razoes:
+   a transicao passa a durar exatamente o percurso real (chute grande deixa a
+   abertura veloz e depois parada), e respostas de tamanhos diferentes abrem
+   todas com a mesma cadencia.
+------------------------------------------------------------------------- */
+(function(){
+  var itens = [...document.querySelectorAll('.faq-item')];
+
+  /* O padding vai para dentro de um involucro: preso ao .r ele continuaria
+     ocupando altura com o item fechado. */
+  itens.forEach(function(item){
+    var r = item.querySelector('.r');
+    if(!r || r.querySelector('.r-in')) return;
+    var dentro = document.createElement('div');
+    dentro.className = 'r-in';
+    while(r.firstChild) dentro.appendChild(r.firstChild);
+    r.appendChild(dentro);
+  });
+
+  function fechar(item){
+    item.classList.remove('aberto');
+    item.querySelector('.r').style.maxHeight = '';
+    item.querySelector('button').setAttribute('aria-expanded','false');
+  }
+  function abrir(item){
+    item.classList.add('aberto');
+    var r = item.querySelector('.r');
+    r.style.maxHeight = r.querySelector('.r-in').scrollHeight + 'px';
+    item.querySelector('button').setAttribute('aria-expanded','true');
+  }
+
+  itens.forEach(function(item){
+    item.querySelector('button').addEventListener('click', function(){
+      var jaAberto = item.classList.contains('aberto');
+      itens.forEach(fechar);
+      if(!jaAberto) abrir(item);
     });
-    if(!jaAberto){item.classList.add('aberto');b.setAttribute('aria-expanded','true')}
-  };
-});
+  });
+
+  /* Uma resposta ja vem aberta no HTML, e ela tambem precisa da medida. */
+  var inicial = document.querySelector('.faq-item.aberto');
+  if(inicial) abrir(inicial);
+
+  /* Girar o aparelho reflui o texto e muda a altura da resposta aberta. */
+  addEventListener('resize', function(){
+    var a = document.querySelector('.faq-item.aberto');
+    if(a) a.querySelector('.r').style.maxHeight = a.querySelector('.r-in').scrollHeight + 'px';
+  });
+})();
 
 /* --- menu mobile ---------------------------------------------------------- */
 (function(){
   var b=document.getElementById('burger'), m=document.getElementById('menu');
-  b.onclick=function(){
-    var abrindo=!m.classList.contains('aberto');
+
+  function alternar(abrindo){
     m.classList.toggle('aberto',abrindo);
+    document.body.classList.toggle('menu-aberto',abrindo);
     b.setAttribute('aria-expanded',String(abrindo));
     document.body.style.overflow=abrindo?'hidden':'';
-  };
-  m.querySelectorAll('a').forEach(function(a){
-    a.onclick=function(){m.classList.remove('aberto');document.body.style.overflow=''};
-  });
+  }
+  /* Publicado para o tratador de ancoras alcancar. O logo da navbar fica ACIMA
+     do menu (z-index maior, para continuar clicavel), entao clicar nele com o
+     menu aberto disparava a rolagem para o topo - que nao acontecia, porque o
+     body estava com overflow:hidden. O menu tem de fechar antes. */
+  window.__fecharMenu = function(){ if(m.classList.contains('aberto')) alternar(false); };
+
+  b.onclick=function(){ alternar(!m.classList.contains('aberto')); };
+  m.querySelectorAll('a').forEach(function(a){ a.addEventListener('click',function(){alternar(false)}); });
   document.addEventListener('keydown',function(e){
-    if(e.key==='Escape'&&m.classList.contains('aberto')){
-      m.classList.remove('aberto');document.body.style.overflow='';b.focus();
-    }
+    if(e.key==='Escape'&&m.classList.contains('aberto')){ alternar(false); b.focus(); }
   });
 })();
 
@@ -1850,7 +1987,22 @@ document.querySelectorAll('a[href^="#"]').forEach(function(a){
     var alvo=document.querySelector(a.getAttribute('href'));
     if(!alvo)return;
     e.preventDefault();
-    window.scrollTo({top:alvo.getBoundingClientRect().top+window.scrollY-90,behavior:'smooth'});
+    /* Fechar primeiro: com o menu aberto o body esta travado e a rolagem
+       simplesmente nao sai do lugar. Vale para o logo e para qualquer atalho. */
+    if(window.__fecharMenu) window.__fecharMenu();
+
+    /* setTimeout e nao requestAnimationFrame - mesma licao da entrada do hero:
+       rAF fica pausado em aba de segundo plano e a rolagem nunca sairia. Zero
+       ja basta: so precisa cair no tique seguinte, depois de o body destravar. */
+    setTimeout(function(){
+      window.scrollTo({
+        top: alvo.getBoundingClientRect().top + window.scrollY - 90,
+        /* Quem pediu menos movimento no sistema nao quer a pagina deslizando
+           por 4000px. A opcao em JS ignora o scroll-behavior do CSS, entao a
+           preferencia precisa ser lida aqui. */
+        behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+      });
+    }, 0);
   });
 });
 </script>
