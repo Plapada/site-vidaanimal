@@ -52,7 +52,23 @@
 <meta property="og:title" content="Vida Animal | Clínica Veterinária 24h em Jaboatão dos Guararapes" />
 <meta property="og:description" content="Seu pet não escolhe a hora. Por isso a gente não fecha. Clínica veterinária 24 horas no Centro de Jaboatão." />
 <meta property="og:url" content="https://plapada.github.io/site-vidaanimal/" />
-<meta name="twitter:card" content="summary" />
+
+<!--
+  A imagem de previa e gerada por `node gerar-og.mjs` + og-builder.html, e
+  repete a composicao do hero de proposito: quem clica no link cai numa pagina
+  que e a continuacao visual do que viu no WhatsApp.
+
+  1200x630 porque e o que Facebook, WhatsApp e LinkedIn esperam - fora dessa
+  proporcao cada um corta de um jeito. URL absoluta porque previa nao resolve
+  caminho relativo. Trocar para summary_large_image e o que faz o card ocupar a
+  largura toda em vez de virar miniatura ao lado do texto.
+-->
+<meta property="og:image" content="https://plapada.github.io/site-vidaanimal/assets/og-vida-animal.jpg" />
+<meta property="og:image:type" content="image/jpeg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Vida Animal — clínica veterinária 24 horas em Jaboatão dos Guararapes" />
+<meta name="twitter:card" content="summary_large_image" />
 
 <!-- Favicon em SVG embutido: sem requisicao extra e sem arquivo para perder. -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23F2570A'/%3E%3Cg fill='%23fff'%3E%3Cellipse cx='23' cy='23' rx='6' ry='8'/%3E%3Cellipse cx='41' cy='23' rx='6' ry='8'/%3E%3Cellipse cx='13' cy='36' rx='5.5' ry='7'/%3E%3Cellipse cx='51' cy='36' rx='5.5' ry='7'/%3E%3Cpath d='M32 33c7 0 13 6 13 12 0 5-4 8-8 6l-5-2-5 2c-4 2-8-1-8-6 0-6 6-12 13-12z'/%3E%3C/g%3E%3C/svg%3E" />
