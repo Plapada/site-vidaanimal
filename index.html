@@ -322,14 +322,7 @@ button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:p
    mascara da foto passa a pesar, em qualquer largura entre 900 e 2560. */
 .hero-grid{display:grid;grid-template-columns:minmax(0,min(660px,46vw));z-index:2}
 
-.hero-foto{
-  --fade:linear-gradient(96deg,
-    transparent 0%,        rgba(0,0,0,.02) 6%,  rgba(0,0,0,.06) 12%,
-    rgba(0,0,0,.15) 18%,   rgba(0,0,0,.30) 24%, rgba(0,0,0,.50) 30%,
-    rgba(0,0,0,.70) 36%,   rgba(0,0,0,.85) 42%, rgba(0,0,0,.95) 48%,
-    #000 54%);
-  position:absolute;z-index:0;top:0;right:0;bottom:0;width:58%;overflow:hidden;
-  -webkit-mask-image:var(--fade);mask-image:var(--fade)}
+.hero-foto{position:absolute;z-index:0;inset:0;overflow:hidden}
 
 /* Camada de camera: respira devagar, sem parar. Fica no wrapper e nao em cada
    foto de proposito - preso a foto, o zoom reiniciaria a cada troca e daria um
@@ -343,21 +336,100 @@ button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:p
   opacity:0;transition:opacity 1.4s var(--ease)}
 .hero-foto img.on{opacity:1}
 
-/* Dissolve em cima e embaixo. Creme sobre creme e invisivel fora da foto, entao
-   este veu so tem efeito onde ha imagem. Em cima ele abre espaco para a pilula
-   da navbar pousar no creme, com a sombra laranja dela caindo no lugar certo;
-   embaixo impede que a foto termine numa linha reta contra a proxima secao. */
-.hero-foto::after{content:"";position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(to bottom,
-    var(--creme) 0%, rgba(255,246,241,.62) 6%, rgba(255,246,241,0) 15%,
-    rgba(255,246,241,0) 80%, rgba(255,246,241,.6) 93%, var(--creme) 100%)}
+/* ===========================================================================
+   LEGIBILIDADE SOBRE FOTO - duas camadas, e a ordem entre elas e o projeto
+   ---------------------------------------------------------------------------
+   O problema real nao e a foto ser clara. E ela ser IMPREVISIVEL: sao quatro
+   imagens em rodizio, elas vao ser trocadas por fotos da clinica, e ninguem vai
+   reajustar o degrade a cada troca. Entao o tratamento precisa garantir
+   contraste para qualquer foto que venha - inclusive uma toda branca.
 
-/* Emenda quente. A costura entre os dois lados puxa para o laranja da marca em
-   vez de morrer no neutro - e o que faz a transicao parecer decidida, e nao um
-   fade-out por falta de ideia. */
-.emenda{position:absolute;z-index:1;top:0;bottom:0;right:34%;width:32%;pointer-events:none;
-  background:linear-gradient(100deg,
-    rgba(242,87,10,0) 0%, rgba(242,87,10,.12) 50%, rgba(242,87,10,0) 100%)}
+   A saida barata seria escurecer ate o texto passar. So que o que quebra a
+   leitura de um texto sobre foto nao e o brilho medio do fundo: e o DETALHE.
+   Uma pelagem malhada atras de uma letra compete com a propria forma da letra,
+   por mais escura que esteja. Escurecimento resolve luminancia; desfoque
+   resolve frequencia.
+
+   Por isso sao duas camadas:
+
+     .hero-foco   desfoca o fundo so onde o texto pousa, tirando o detalhe
+     ::after      escurece em degrade, garantindo a luminancia
+
+   Juntas, permitem um veu MUITO mais leve do que so escurecer daria - e veu
+   leve e o que sobra de foto para a pessoa ver. E o desfoque que compra a
+   imersao que o escurecimento sozinho cobraria.
+
+   Os numeros nao sao gosto. No trecho do texto o composto chega a 92% de
+   cobertura: mesmo que o pixel da foto seja branco puro, o fundo fica em
+   luminancia ~0,085, e branco sobre isso da 7,8:1 - passa AA com folga para
+   texto pequeno. Na outra ponta a cobertura cai para ~27% e a foto aparece.
+   =========================================================================== */
+.hero-foco{position:absolute;inset:0;z-index:1;pointer-events:none;
+  -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);
+  --foco:linear-gradient(97deg,#000 0%,#000 26%,rgba(0,0,0,.72) 42%,
+    rgba(0,0,0,.3) 58%,transparent 72%);
+  -webkit-mask-image:var(--foco);mask-image:var(--foco)}
+
+.hero-foto::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:
+    /* 1. concentracao do lado do texto */
+    linear-gradient(97deg,
+      rgba(10,6,3,.90) 0%,  rgba(10,6,3,.84) 22%, rgba(10,6,3,.58) 42%,
+      rgba(10,6,3,.26) 60%, rgba(10,6,3,.10) 78%, rgba(10,6,3,.04) 100%),
+    /* 2. peso no rodape, para a borda inferior nao cortar seco */
+    linear-gradient(to top, rgba(10,6,3,.42) 0%, rgba(10,6,3,0) 34%),
+    /* 3. tinta quente geral: unifica fotos de origens e temperaturas diferentes
+          numa familia so, que e o que impede o rodizio de parecer banco de
+          imagem embaralhado */
+    linear-gradient(rgba(28,14,6,.24), rgba(28,14,6,.24))}
+
+/* Sem desfoque disponivel, a luminancia tem de fazer o servico sozinha. */
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .hero-foto::after{background:
+    linear-gradient(97deg,
+      rgba(10,6,3,.95) 0%,  rgba(10,6,3,.92) 24%, rgba(10,6,3,.74) 44%,
+      rgba(10,6,3,.42) 62%, rgba(10,6,3,.18) 80%, rgba(10,6,3,.08) 100%),
+    linear-gradient(to top, rgba(10,6,3,.42) 0%, rgba(10,6,3,0) 34%),
+    linear-gradient(rgba(28,14,6,.24), rgba(28,14,6,.24))}
+}
+
+/* ---------------------------------------------------------------------------
+   O TEXTO SOBRE A FOTO
+   ---------------------------------------------------------------------------
+   O hero passa a ser a unica superficie escura do topo do site, e isso e
+   coerente com o que ele diz: a promessa e madrugada, e a secao que promete
+   madrugada ser a escura nao contraria a marca, conta a mesma historia. As sete
+   secoes seguintes continuam claras, entao a proporcao 70/20/10 da identidade
+   segue de pe na pagina inteira.
+
+   O laranja da marca NAO sobrevive aqui, e isto foi medido, nao sentido:
+   #F2570A sobre o fundo escurecido da 1,9:1, e #FF7A33 da 2,5:1 - os dois
+   reprovam nos 3:1 que texto grande exige. #FF8F4D, que e o mesmo laranja
+   clareado, chega a 3,4:1. Trocar o tom foi a alternativa a escurecer ainda
+   mais o veu, que custaria justamente a foto que se quer mostrar.
+--------------------------------------------------------------------------- */
+:root{--laranja-sobre-foto:#FF8F4D}
+
+#topo .t-hero{color:var(--branco)}
+#topo .t-hero .laranja{color:var(--laranja-sobre-foto)}
+#topo .lead{color:rgba(255,255,255,.88)}
+
+/* A etiqueta vira vidro: contorno claro e um fundo tenue que a descola da foto
+   sem virar mais um retangulo solido no meio da imagem. */
+#topo .badge{color:var(--branco);border-color:rgba(255,255,255,.55);
+  background:rgba(255,255,255,.1);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+
+/* O secundario passa a ser o fantasma que o sistema ja tinha para fundo escuro,
+   em vez do de contorno preto, que sumiria. */
+#topo .btn-linha{background:transparent;color:var(--branco);border-color:rgba(255,255,255,.75);
+  box-shadow:4px 4px 0 0 var(--laranja)}
+@media (hover:hover){
+  #topo .btn-linha:hover{background:var(--branco);color:var(--ink);border-color:var(--branco)}
+}
+
+/* As ondas laranja saem do hero: a foto ja e a textura, e linha sobre foto
+   escurecida vira sujeira em vez de assinatura. */
+#topo .ondas{display:none}
 
 /* Indicador na borda direita, longe das duas zonas de dissolucao.
    Preenchimento claro E anel escuro nos dois estados, de proposito: as quatro
@@ -383,6 +455,24 @@ button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:p
     - 440px de largura contra 765px de original deixa margem de sobra para
       tela retina, sem que o navegador precise ampliar o arquivo.
    =========================================================================== */
+/*
+  A secao sobe POR CIMA do hero, com canto arredondado.
+
+  O hero agora termina em foto escurecida e a proxima secao e creme: encostadas,
+  as duas produzem uma linha reta atravessando a tela, do tipo que denuncia
+  "aqui acabou um bloco e comecou outro".
+
+  Este gesto - superficie clara subindo sobre a escura com o topo arredondado -
+  ja e o do rodape, que faz exatamente isso com o resto da pagina. Reaproveitar
+  ele custa tres linhas e evita inventar uma segunda maneira de resolver a mesma
+  transicao.
+
+  O fundo explicito e obrigatorio: sem ele a secao fica transparente, e o que
+  aparece por baixo e justamente a foto que ela deveria cobrir.
+*/
+#local{position:relative;z-index:1;margin-top:-46px;padding-top:96px;
+  background:var(--creme);border-radius:46px 46px 0 0}
+
 .local{display:grid;grid-template-columns:minmax(0,440px) 1fr;gap:64px;align-items:center}
 .fachada{position:relative;display:block;width:100%;aspect-ratio:3/4;overflow:hidden;
   border:3px solid var(--ink);border-radius:var(--r-hero);box-shadow:12px 12px 0 0 var(--laranja);
@@ -638,8 +728,21 @@ button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:p
   gap:20px;padding:22px 24px;text-align:left}
 .faq-item .q{font-family:var(--display);font-size:1.02rem;font-weight:700;line-height:1.4;color:var(--ink)}
 .faq-item .mais{display:flex;align-items:center;justify-content:center;width:36px;height:36px;
-  border-radius:50%;background:var(--laranja);color:var(--ink);flex:0 0 auto;transition:transform .3s}
-.faq-item.aberto .mais{transform:rotate(45deg);background:var(--laranja);color:var(--ink)}
+  border-radius:50%;background:var(--laranja);color:var(--ink);flex:0 0 auto;
+  transition:transform .45s var(--surge),background-color .32s,color .32s}
+/*
+  O sinal gira E inverte. So o giro - que era o que existia - resolve o estado,
+  mas resolve baixinho: 36px virando de + para x, num item que ocupa a largura
+  toda da coluna. Invertendo o disco junto, a mudanca de estado tem peso a
+  distancia, que e de onde a pessoa olha a lista.
+
+  As duas trocas de cor nao tinham transicao nenhuma: a transicao declarada
+  cobria so transform, entao disco e pergunta pulavam de cor enquanto a altura
+  deslizava. Era essa mistura - uma parte animando, outra estalando no mesmo
+  gesto - que dava a impressao de abertura bruta.
+*/
+.faq-item.aberto .mais{transform:rotate(135deg);background:var(--ink);color:var(--laranja)}
+.faq-item .q{transition:color .32s}
 .faq-item.aberto .q{color:var(--laranja-escuro)}
 /*
   ABERTURA DO ACORDEAO.
@@ -783,31 +886,6 @@ html.js [data-revela="peso"]  {transform:translate3d(0,22px,0) scale(.965)}
 */
 html.js [data-revela].dentro{opacity:1;transform:var(--pouso,none)}
 
-/*
-  A LINHA QUE ABRE A SECAO.
-  Um fio laranja que se estende sob o titulo quando a secao entra. E o unico
-  elemento puramente decorativo da entrada, e existe por um motivo pratico:
-  num site de rolagem longa ele marca "comecou coisa nova aqui" sem precisar
-  de mais um titulo ou mais uma borda.
-*/
-/*
-  A ancora precisa ser o PROPRIO titulo.
-
-  Antes o h2 era position:static, entao o ::after subia procurando ancestral
-  posicionado e achava o .wrap - o bloco da secao inteira. `bottom:-14px`
-  passou a significar "14px abaixo do fim da secao" em vez de "14px abaixo do
-  titulo", e o fio ia parar 600px longe de onde deveria, no rodape da secao.
-  Um position:relative no titulo e o que amarra o pseudo-elemento nele.
-*/
-/* Só position:relative. Um display:inline-block aqui encolheria o h2 para a
-   largura do texto e mudaria onde cada titulo quebra de linha - efeito colateral
-   grande para nada, ja que o fio tem largura fixa de 64px. */
-html.js [data-fio]{position:relative}
-html.js [data-fio]::after{content:"";position:absolute;left:0;bottom:-14px;height:3px;width:0;
-  border-radius:2px;background:var(--laranja);
-  transition:width .9s var(--surge);transition-delay:calc(var(--atraso,0ms) + 180ms)}
-html.js [data-fio].dentro::after{width:64px}
-.sobre-escuro [data-fio]::after,.sobre-laranja [data-fio]::after{background:var(--branco)}
 
 /* ===========================================================================
    RESPONSIVO
@@ -847,27 +925,36 @@ html.js [data-fio].dentro::after{width:64px}
     criaria duas marcas - uma clara no monitor, uma escura no telefone.
   */
   #topo{align-items:flex-end;padding:120px 16px 40px}
-  .hero-foto{top:0;bottom:0;left:0;width:100%;height:100%;
-    -webkit-mask-image:none;mask-image:none}
   /* Retrato cortado pelo centro corta o rosto. 32% puxa o quadro para cima. */
   .hero-foto img{object-position:50% 32%}
   /*
-    O veu. Transparente ate 24%, creme solido a partir de 45%.
+    As duas camadas mudam de EIXO, nao de receita: no monitor o texto mora a
+    esquerda e os degrades correm na horizontal; aqui ele mora embaixo e elas
+    correm na vertical. A cobertura no trecho do texto continua a mesma ~92%, e
+    com ela o mesmo contraste medido - o que muda e so para onde a foto abre.
 
-    Os 45% nao sao escolha estetica: o bloco de texto (etiqueta, titulo, apoio e
-    dois botoes) mede cerca de 395px e esta ancorado na base, entao ele comeca
-    aos 46% da tela. O veu tem de estar fechado ANTES disso. Na primeira versao
-    ele so fechava aos 66% e o paragrafo de apoio caia sobre pelo claro - ficou
-    ilegivel, que e o preco de tratar o degrade como enfeite em vez de medida.
+    O ponto de fechamento nao e escolha estetica: o bloco de texto mede ~395px
+    ancorado na base, entao comeca aos 46% da tela, e as camadas tem de estar
+    fechadas antes disso. Foi errando esta conta uma vez que o paragrafo de
+    apoio caiu sobre pelo claro e ficou ilegivel.
 
     As paradas intermediarias sao muitas de proposito: com duas so, aparece a
     banda de Mach - uma borda fantasma atravessando a foto.
   */
-  .hero-foto::after{background:linear-gradient(to bottom,
-    rgba(255,246,241,0) 0%,    rgba(255,246,241,0) 24%,
-    rgba(255,246,241,.22) 30%, rgba(255,246,241,.50) 34%,
-    rgba(255,246,241,.74) 38%, rgba(255,246,241,.90) 41%,
-    rgba(255,246,241,.98) 43%, var(--creme) 45%)}
+  .hero-foco{--foco:linear-gradient(to top,#000 0%,#000 34%,rgba(0,0,0,.72) 48%,
+    rgba(0,0,0,.3) 62%,transparent 76%)}
+  .hero-foto::after{background:
+    linear-gradient(to top,
+      rgba(10,6,3,.92) 0%,  rgba(10,6,3,.88) 26%, rgba(10,6,3,.66) 42%,
+      rgba(10,6,3,.34) 58%, rgba(10,6,3,.12) 76%, rgba(10,6,3,.04) 100%),
+    linear-gradient(rgba(28,14,6,.24), rgba(28,14,6,.24))}
+  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+    .hero-foto::after{background:
+      linear-gradient(to top,
+        rgba(10,6,3,.95) 0%,  rgba(10,6,3,.93) 28%, rgba(10,6,3,.80) 44%,
+        rgba(10,6,3,.50) 60%, rgba(10,6,3,.20) 78%, rgba(10,6,3,.08) 100%),
+      linear-gradient(rgba(28,14,6,.24), rgba(28,14,6,.24))}
+  }
 
   /* O texto encolhe para caber na metade de baixo sem empurrar o veu para
      cima de mais foto do que o necessario. */
@@ -894,6 +981,7 @@ html.js [data-fio].dentro::after{width:64px}
 }
 @media (max-width:640px){
   .secao{padding:76px 16px}
+  #local{margin-top:-32px;padding-top:70px;border-radius:32px 32px 0 0}
   .sinais{grid-template-columns:1fr}
   .bloco-prova{border-radius:var(--r-card);box-shadow:8px 8px 0 0 rgba(0,0,0,.5)}
   .faixa-num{grid-template-columns:1fr}
@@ -952,12 +1040,6 @@ html.js [data-fio].dentro::after{width:64px}
   .dots button{width:13px;height:13px;position:relative}
   .dots button::after{content:"";position:absolute;inset:-16px}
   .dots button.on{width:40px;height:13px}
-
-  /* --- 4. o fio de abertura sai --------------------------------------- */
-  /* Ele marca "comecou secao nova" para quem ve varias secoes de uma vez. Numa
-     tela onde cabe pouco mais que um titulo por vez, essa leitura nao existe -
-     sobra so um risco solto embaixo do texto. */
-  html.js [data-fio]::after{display:none}
 
   /* --- 5. servicos: miniatura em cada card ----------------------------- */
   .item-serv{align-items:flex-start;gap:14px;padding:12px 14px;border-radius:18px}
@@ -1122,7 +1204,7 @@ html.js [data-fio].dentro::after{width:64px}
 <main>
 
 <!-- ======================= HERO ======================= -->
-<section id="topo">
+<section id="topo" class="sobre-escuro">
   <div class="ondas" aria-hidden="true">
     <svg class="onda-tr" viewBox="0 0 600 620" fill="none">
       <path d="M640 -60C520 40 470 150 520 250c50 100 130 130 90 250-30 90-140 150-260 170" stroke="#F2570A" stroke-width="86" stroke-linecap="round" opacity=".16"/>
@@ -1150,13 +1232,25 @@ html.js [data-fio].dentro::after{width:64px}
   -->
   <div class="hero-foto" aria-hidden="true">
     <div class="hero-camada" id="slides">
-      <img class="on" src="https://images.unsplash.com/photo-1770836037793-95bdbf190f71?auto=format&fit=crop&w=1100&h=1400&q=80" alt="">
-      <img src="https://images.unsplash.com/photo-1725409796872-8b41e8eca929?auto=format&fit=crop&w=1100&h=1400&q=80" alt="">
-      <img src="https://images.unsplash.com/photo-1700665537604-412e89a285c3?auto=format&fit=crop&w=1100&h=1400&q=80" alt="">
-      <img src="https://images.unsplash.com/photo-1733783506192-653df6185a7d?auto=format&fit=crop&w=1100&h=1400&q=80" alt="">
+      <picture>
+        <source media="(min-width:901px)" srcset="https://images.unsplash.com/photo-1770836037793-95bdbf190f71?auto=format&fit=crop&w=1900&h=1100&q=80">
+        <img class="on" fetchpriority="high" src="https://images.unsplash.com/photo-1770836037793-95bdbf190f71?auto=format&fit=crop&w=1100&h=1400&q=80" alt="">
+      </picture>
+      <picture>
+        <source media="(min-width:901px)" srcset="https://images.unsplash.com/photo-1725409796872-8b41e8eca929?auto=format&fit=crop&w=1900&h=1100&q=80">
+        <img loading="lazy" src="https://images.unsplash.com/photo-1725409796872-8b41e8eca929?auto=format&fit=crop&w=1100&h=1400&q=80" alt="">
+      </picture>
+      <picture>
+        <source media="(min-width:901px)" srcset="https://images.unsplash.com/photo-1700665537604-412e89a285c3?auto=format&fit=crop&w=1900&h=1100&q=80">
+        <img loading="lazy" src="https://images.unsplash.com/photo-1700665537604-412e89a285c3?auto=format&fit=crop&w=1100&h=1400&q=80" alt="">
+      </picture>
+      <picture>
+        <source media="(min-width:901px)" srcset="https://images.unsplash.com/photo-1733783506192-653df6185a7d?auto=format&fit=crop&w=1900&h=1100&q=80">
+        <img loading="lazy" src="https://images.unsplash.com/photo-1733783506192-653df6185a7d?auto=format&fit=crop&w=1100&h=1400&q=80" alt="">
+      </picture>
     </div>
+    <span class="hero-foco" aria-hidden="true"></span>
   </div>
-  <span class="emenda" aria-hidden="true"></span>
   <!-- Controles de um fundo decorativo: visiveis, mas fora da ordem de foco e
        do leitor de tela. Nao ha conteudo atras deles para se perder. -->
   <div class="dots" id="dots" aria-hidden="true"></div>
@@ -1843,9 +1937,6 @@ html.js [data-fio].dentro::after{width:64px}
       marcar(caixa, 'sobe', n++ * PASSO_CABECA);
     });
 
-    /* o fio laranja nasce do titulo da secao */
-    var titulo = sec.querySelector('h2.t-sec');
-    if(titulo) titulo.setAttribute('data-fio','');
   });
 
   /* --- o observador ------------------------------------------------------ */
