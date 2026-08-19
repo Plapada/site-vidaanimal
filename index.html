@@ -647,7 +647,7 @@ button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:p
     era inevitavel (o elemento precisava sangrar para fora de um ancestral que
     o prendia); aqui e so ordem, e ordem e trabalho do CSS.
   */
-  .plano{display:flex;flex-direction:column;gap:0}
+  .plano{display:grid;grid-template-columns:1fr;gap:0}
   #plano .plano > div{display:contents}
   #plano .badge        {order:1}
   #plano .t-sec        {order:2}
@@ -655,6 +655,40 @@ button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:p
   #plano .cartao-plano {order:4;margin-top:30px;padding:34px 26px 28px}
   #plano .plano-itens  {order:5;margin-top:30px}
   #plano .mt-5         {order:6}
+}
+
+/*
+  CARTAO E TOPICOS LADO A LADO NO CELULAR.
+
+  So a partir de 380px, e o piso nao e arbitrario: em 375px sobram 184px para o
+  cartao e 145px para os topicos. "R$ 39,90" no corpo original nao cabe em 184px
+  menos o padding, e "Tecnologia de ponta" quebra em duas linhas de qualquer
+  jeito. Abaixo desse piso o empilhado continua sendo a leitura melhor - card
+  espremido nao e mais dinamico, e so menor.
+
+  Com display:contents os seis elementos sao filhos diretos do grid, entao da
+  para colocar cartao e lista na MESMA linha (grid-row 4) e deixar o resto
+  atravessando as duas colunas.
+*/
+@media (max-width:900px) and (min-width:380px){
+  .plano{grid-template-columns:1.14fr .86fr;column-gap:16px}
+  #plano .badge       {grid-area:1/1/2/3}
+  #plano .t-sec       {grid-area:2/1/3/3}
+  #plano .lead        {grid-area:3/1/4/3}
+  #plano .cartao-plano{grid-area:4/1/5/2;padding:26px 16px 22px}
+  #plano .plano-itens {grid-area:4/2/5/3;grid-template-columns:1fr;
+    align-content:center;gap:16px}
+  #plano .mt-5        {grid-area:5/1/6/3}
+
+  /* Tudo encolhe junto para caber na coluna estreita sem estourar. */
+  #plano .cp-marca{font-size:1.16rem}
+  #plano .cp-lbl{margin-top:14px;font-size:.6rem;letter-spacing:.12em}
+  #plano .cp-preco{font-size:1.95rem}
+  #plano .cp-por{font-size:.82rem}
+  #plano .cp-fone{margin-top:16px;padding-top:14px;font-size:.82rem;
+    white-space:nowrap}
+  #plano .plano-itens li{font-size:.85rem;line-height:1.35;align-items:flex-start;gap:9px}
+  #plano .plano-itens .tique{width:22px;height:22px;margin-top:1px}
 }
 @media (max-width:640px){
   .plano-itens{grid-template-columns:1fr;gap:12px}
