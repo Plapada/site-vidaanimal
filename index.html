@@ -418,13 +418,32 @@ button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:p
   As etiquetas de escopo. Contorno claro e fundo de vidro, na mesma familia da
   antiga etiqueta de topo - o que muda e o papel, nao a peca.
 */
-.etiquetas{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:0;padding:0}
-.etiquetas li{display:inline-flex;align-items:center;padding:8px 15px;
+/* A promessa fecha o titulo: mesma familia tipografica, um degrau menor, laranja
+   sobre foto. E a resposta a categoria que a linha de cima declara. */
+.t-hero .promessa{display:inline-block;margin-top:.28em;font-size:.68em;
+  color:var(--laranja-sobre-foto)}
+
+/*
+  Respiro de 34px entre o titulo e as etiquetas: coladas, elas liam como uma
+  terceira linha do titulo em vez de um bloco separado.
+*/
+.etiquetas{display:flex;flex-wrap:wrap;gap:10px;list-style:none;margin:34px 0 0;padding:0}
+.etiquetas li{display:inline-flex;align-items:center;padding:9px 16px;
   border:1.5px solid rgba(255,255,255,.42);border-radius:var(--r-pill);
   background:rgba(255,255,255,.09);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
   font-family:var(--display);font-size:.72rem;font-weight:700;text-transform:uppercase;
-  letter-spacing:.09em;color:var(--branco)}
-@media (max-width:640px){.etiquetas li{font-size:.66rem;padding:7px 12px}}
+  letter-spacing:.09em;color:var(--branco);cursor:default;
+  transition:transform .38s var(--surge),background-color .3s,border-color .3s,color .3s}
+/* Sobem e acendem no laranja da marca. So no ponteiro: em tela de toque nao ha
+   hover, e um estado presos no "aceso" apos o toque seria pior que nenhum. */
+@media (hover:hover){
+  .etiquetas li:hover{transform:translateY(-4px);background:var(--laranja);
+    border-color:var(--laranja);color:var(--ink)}
+}
+@media (max-width:640px){
+  .etiquetas{margin-top:26px;gap:8px}
+  .etiquetas li{font-size:.66rem;padding:7px 12px}
+}
 
 /* ---------------------------------------------------------------------------
    O TEXTO SOBRE A FOTO
@@ -1397,18 +1416,16 @@ body.menu-aberto .burger svg path:nth-child(3){transform:translateY(-7px) rotate
         pesquisa aponta (a mesma conta fala de emergencia e de banho e tosa).
       -->
       <h1 class="t-hero">
-        Clínica <span class="laranja">24h</span> em Jaboatão.
+        Clínica <span class="laranja">24h</span> em Jaboatão.<br>
+        <span class="promessa">A porta está aberta agora.</span>
       </h1>
 
-      <ul class="etiquetas mt-3">
+      <ul class="etiquetas">
         <li>Emergência</li>
         <li>Exames e internação</li>
         <li>Banho, tosa e pet shop</li>
       </ul>
 
-      <p class="lead mt-3 max-520">
-        407 tutores já avaliaram: 4,7 no Google.
-      </p>
       <div class="mt-5" style="display:flex;gap:14px;flex-wrap:wrap">
         <a class="btn btn-cta" target="_blank" rel="noopener"
            href="https://wa.me/5581982348804?text=Ol%C3%A1!%20Preciso%20de%20atendimento%20para%20o%20meu%20pet.">
@@ -1600,9 +1617,10 @@ body.menu-aberto .burger svg path:nth-child(3){transform:translateY(-7px) rotate
   <div class="wrap">
     <header class="max-680">
       <span class="badge">Emergência</span>
-      <h2 class="t-sec mt-3">É emergência ou dá pra esperar <span class="laranja">amanhecer</span>?</h2>
+      <h2 class="t-sec mt-3">Seis sinais que <span class="laranja">não esperam</span> o dia clarear.</h2>
       <p class="lead mt-2">
-        É a pergunta que trava o tutor às três da manhã. Estes seis sinais não
+        É emergência ou dá pra esperar amanhecer? É a pergunta que trava o tutor
+        às três da manhã, e estes seis sinais não
         esperam o dia clarear.
       </p>
     </header>
@@ -1712,7 +1730,7 @@ body.menu-aberto .burger svg path:nth-child(3){transform:translateY(-7px) rotate
   <div class="wrap serv-grid">
     <div>
       <span class="badge">Serviços</span>
-      <h2 class="t-sec mt-3">Tudo numa <span class="laranja">casa só</span>.</h2>
+      <h2 class="t-sec mt-3">Um endereço para <span class="laranja">tudo</span>.</h2>
       <p class="lead mt-2" style="max-width:420px">
         Da emergência de madrugada ao banho de sábado. Seu pet não muda de
         endereço nem de quem cuida dele.
@@ -1775,7 +1793,7 @@ body.menu-aberto .burger svg path:nth-child(3){transform:translateY(-7px) rotate
   <div class="wrap">
     <div class="bento">
       <div class="cel" style="display:flex;flex-direction:column;justify-content:center">
-        <h2 class="t-manifesto">Do susto ao banho de sábado, <span class="laranja">a mesma casa.</span></h2>
+        <h2 class="t-manifesto">24 horas não é um horário. <span class="laranja">É um compromisso.</span></h2>
         <p class="lead mt-3 max-480">
           Consulta, exame, internação, banho e tosa e pet shop no mesmo endereço.
           Seu pet não troca de lugar nem de quem cuida dele quando o assunto muda.
@@ -1810,7 +1828,7 @@ body.menu-aberto .burger svg path:nth-child(3){transform:translateY(-7px) rotate
 <section id="duvidas" class="secao bg-creme">
   <div class="wrap">
     <header style="text-align:center;margin-bottom:48px">
-      <h2 class="t-sec">Perguntas que a gente <span class="laranja">ouve todo dia</span>.</h2>
+      <h2 class="t-sec">Perguntas <span class="laranja">frequentes</span>.</h2>
     </header>
 
     <div class="faq" id="faq">
