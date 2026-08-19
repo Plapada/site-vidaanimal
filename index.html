@@ -588,6 +588,64 @@ button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:p
 }
 
 /* ===========================================================================
+   PLANO DE SAUDE
+   ---------------------------------------------------------------------------
+   O cartao a direita e a peca que carrega a secao, e ele nao inventa linguagem
+   nova: e o mesmo preto com borda grossa e sombra solida do bloco de numeros,
+   aplicado ao unico numero que existe aqui. Preco quer o mesmo tratamento que
+   o site ja da a metrica - se o 407 e grande e chapado, o 39,90 tambem e.
+
+   O laranja fica so no preco e no tique. Espalhado pelos quatro itens, ele
+   competiria com o cartao e a secao perderia o ponto de fuga.
+   =========================================================================== */
+.plano{display:grid;grid-template-columns:1fr minmax(0,380px);gap:64px;align-items:center}
+
+.plano-itens{display:grid;grid-template-columns:repeat(2,1fr);gap:14px 26px;
+  list-style:none;margin:30px 0 0;padding:0}
+.plano-itens li{display:flex;align-items:center;gap:11px;font-size:.97rem;color:var(--ink)}
+.plano-itens .tique{display:flex;align-items:center;justify-content:center;
+  width:26px;height:26px;flex:0 0 auto;border-radius:50%;background:var(--laranja);
+  border:2px solid var(--ink);transition:transform .35s var(--ease)}
+/* o tique e desenhado em CSS: dois tracos girados, sem mais um arquivo svg */
+.plano-itens .tique::after{content:"";width:8px;height:4px;margin-top:-2px;
+  border-left:2.5px solid var(--ink);border-bottom:2.5px solid var(--ink);
+  transform:rotate(-45deg)}
+@media (hover:hover){.plano-itens li:hover .tique{transform:scale(1.14) rotate(-8deg)}}
+
+.cartao-plano{position:relative;display:flex;flex-direction:column;align-items:center;
+  text-align:center;padding:40px 32px 34px;border:3px solid var(--ink);
+  border-radius:var(--r-hero);background:var(--ink);color:#fff;
+  box-shadow:14px 14px 0 0 var(--laranja);
+  transition:transform .45s var(--ease),box-shadow .45s var(--ease)}
+@media (hover:hover){
+  .cartao-plano:hover{transform:translate(6px,6px);box-shadow:8px 8px 0 0 var(--laranja)}
+}
+.cp-marca{font-family:var(--display);font-size:1.5rem;font-weight:900;color:var(--laranja);
+  letter-spacing:-.01em}
+.cp-lbl{margin-top:22px;font-family:var(--display);font-size:.7rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.16em;color:rgba(255,255,255,.6)}
+.cp-preco{font-family:var(--display);font-size:clamp(2.6rem,4.4vw,3.4rem);font-weight:900;
+  line-height:1.05;color:var(--laranja)}
+.cp-por{font-size:.95rem;color:rgba(255,255,255,.72)}
+.cp-fone{margin-top:24px;padding-top:20px;width:100%;
+  border-top:2px solid rgba(255,255,255,.16);
+  font-family:var(--display);font-size:1.02rem;font-weight:700;color:#fff;
+  transition:color .3s}
+@media (hover:hover){.cp-fone:hover{color:var(--laranja)}}
+
+@media (max-width:900px){
+  .plano{grid-template-columns:1fr;gap:38px}
+  /* No celular o cartao vem PRIMEIRO: o preco e o argumento mais forte que
+     esta secao tem, e numa coluna so ele ficaria depois de tudo. */
+  .cartao-plano{order:-1;padding:34px 26px 28px}
+  .plano-itens{margin-top:26px}
+}
+@media (max-width:640px){
+  .plano-itens{grid-template-columns:1fr;gap:12px}
+  .cartao-plano{border-radius:var(--r-card);box-shadow:8px 8px 0 0 var(--laranja)}
+}
+
+/* ===========================================================================
    DEPOIMENTOS - laranja cheia, dois blocos separados
    =========================================================================== */
 /*
@@ -1364,6 +1422,7 @@ body.menu-aberto .burger svg path:nth-child(3){transform:translateY(-7px) rotate
 <div id="menu">
   <a href="#urgencia">Emergência 24h</a>
   <a href="#servicos">Serviços</a>
+  <a href="#plano">Plano de saúde</a>
   <a href="#clinica">A clínica</a>
   <a href="#duvidas">Dúvidas</a>
   <a href="#contato">Contato</a>
@@ -1543,6 +1602,56 @@ body.menu-aberto .burger svg path:nth-child(3){transform:translateY(-7px) rotate
         </a>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- ======================= PLANO DE SAÚDE =======================
+  TUDO AQUI SAI DAS PROPRIAS PECAS DO CLIENTE (destaque "Plano de Saude" no
+  Instagram, enviado pelo Pedro em 19/08/2026). Nada foi completado por
+  suposicao - e por isso a secao fala de preco, de quem atende e de como falar,
+  e NAO fala de cobertura, carencia ou rede: nenhuma dessas informacoes existe
+  em fonte alguma ate agora.
+
+  Duas coisas que a arte resolveu e estavam travadas ha semanas:
+   - a GRAFIA: o logotipo do plano escreve "AuQmia". As outras duas grafias em
+     circulacao (AUQMIA no feed, AuQuimia no Linktree) sao variacao da mesma
+     marca, e agora ha uma fonte com autoridade para travar;
+   - o TELEFONE: a arte traz (81) 99925-7963, com nove digitos. O numero do
+     Linktree tem oito e nunca funcionou. Este e o que vale.
+==================================================================== -->
+<section id="plano" class="secao bg-creme">
+  <div class="wrap plano">
+    <div>
+      <span class="badge">Plano de saúde</span>
+      <h2 class="t-sec mt-3">O plano é da <span class="laranja">própria casa</span>.</h2>
+      <p class="lead mt-2 max-520">
+        AuQmia é o plano de saúde da Vida Animal. Aqui o seu cachorro e o seu
+        gato são atendidos com carinho, cuidado e respeito.
+      </p>
+
+      <ul class="plano-itens">
+        <li><span class="tique" aria-hidden="true"></span>Cães e gatos</li>
+        <li><span class="tique" aria-hidden="true"></span>Conforto</li>
+        <li><span class="tique" aria-hidden="true"></span>Tecnologia de ponta</li>
+        <li><span class="tique" aria-hidden="true"></span>Monitoramento 24h</li>
+      </ul>
+
+      <div class="mt-5">
+        <a class="btn btn-cta" target="_blank" rel="noopener"
+           href="https://wa.me/5581999257963?text=Ol%C3%A1!%20Quero%20saber%20sobre%20o%20plano%20de%20sa%C3%BAde%20AuQmia.">
+          <span class="bolha"><svg width="17" height="17" fill="currentColor"><use href="#wa"/></svg></span>
+          Saber do plano
+        </a>
+      </div>
+    </div>
+
+    <aside class="cartao-plano">
+      <span class="cp-marca">AuQmia</span>
+      <span class="cp-lbl">A partir de</span>
+      <span class="cp-preco">R$&nbsp;39,90</span>
+      <span class="cp-por">por mês</span>
+      <a class="cp-fone" href="tel:+5581999257963">(81) 99925-7963</a>
+    </aside>
   </div>
 </section>
 
@@ -2059,7 +2168,8 @@ body.menu-aberto .burger svg path:nth-child(3){transform:translateY(-7px) rotate
     ['.foto-inst',      'peso'],
     ['.card-conversa',  'esq'],
     ['.coluna-mapa',    'dir'],
-    ['.gigante',        'sobe']
+    ['.gigante',        'sobe'],
+    ['.cartao-plano',   'dir']
   ];
 
   var LISTAS = [
@@ -2070,7 +2180,8 @@ body.menu-aberto .burger svg path:nth-child(3){transform:translateY(-7px) rotate
     ['.lista-serv', '.item-serv'],
     ['.faq',        '.faq-item'],
     ['.bento',      '.cel'],
-    ['.redes',      'a']
+    ['.redes',      'a'],
+    ['.plano-itens','li']
   ];
 
   function marcar(el, modo, atraso){
