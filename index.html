@@ -4,6 +4,27 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#F2570A" />
+
+<!--
+  Precisa rodar ANTES da primeira pintura, e por isso esta aqui em cima e
+  nao no fim da pagina.
+
+  Todo o estado inicial das animacoes (opacidade zero) esta preso a `html.js`.
+  Se o JavaScript nao rodar - erro, navegador antigo, extensao bloqueando - a
+  classe nunca entra, o CSS de revelacao nunca se aplica e o site aparece
+  inteiro, parado. Um site de emergencia veterinaria nao pode ficar em branco
+  porque uma animacao falhou.
+
+  ?sem-motion desliga tudo, util para conferir a pagina no estado final.
+-->
+<script>
+(function(){
+  var d=document.documentElement;
+  var pouco = matchMedia('(prefers-reduced-motion: reduce)').matches
+           || location.search.indexOf('sem-motion') > -1;
+  if(!pouco) d.className += ' js';
+})();
+</script>
 <title>Vida Animal | Clínica Veterinária 24h em Jaboatão dos Guararapes</title>
 <meta name="description" content="Clínica veterinária aberta 24 horas no Centro de Jaboatão dos Guararapes. Emergência, exames, internação, banho e tosa e pet shop na mesma casa." />
 
@@ -132,7 +153,20 @@ button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:p
 /* ===========================================================================
    ESTRUTURA
    =========================================================================== */
-.secao{position:relative;overflow:hidden;padding:110px 24px}
+/*
+  overflow:CLIP e nao hidden, e a diferenca nao e cosmetica.
+
+  `hidden` transforma a secao em conteiner de rolagem. Sticky passa a se
+  ancorar nela em vez de na janela - e como a secao nunca rola por dentro, o
+  elemento simplesmente nunca gruda. Era isso que estava acontecendo com os
+  dois paineis do site (o de servicos e o de urgencia): os dois estavam
+  declarados como sticky e nenhum dos dois grudava.
+
+  `clip` recorta igual e NAO cria conteiner de rolagem, entao o sticky volta a
+  se ancorar na janela. A dupla declaracao e proposital: navegador antigo
+  ignora `clip` e fica com `hidden` - perde o sticky, mas nao vaza conteudo.
+*/
+.secao{position:relative;overflow:hidden;overflow:clip;padding:110px 24px}
 .wrap{position:relative;z-index:1;width:100%;max-width:1200px;margin:0 auto}
 .bg-laranja{background:var(--laranja);color:var(--ink)}
 .bg-laranja h2,.bg-laranja h3{color:var(--ink)}
@@ -232,7 +266,8 @@ button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:p
   letter-spacing:1.5px;color:var(--ink);transition:color .2s,opacity .2s}
 .nav a.link:hover{color:var(--branco)}
 .nav ul{display:flex;align-items:center;gap:28px}
-.burger{display:none;color:var(--ink)}
+.burger{display:none;align-items:center;justify-content:center;
+  width:46px;height:46px;margin-right:-10px;color:var(--ink)}
 /*
   LOGO OFICIAL. O arquivo e branco sobre PRETO CHAPADO - nao tem canal alfa
   (verificado: hasAlpha: no). Colado direto sobre o laranja apareceria como um
@@ -637,7 +672,7 @@ footer{position:relative;overflow:hidden;background:var(--ink);color:#fff;
   border-top:1px solid rgba(242,87,10,.25);display:flex;justify-content:space-between;
   gap:12px;flex-wrap:wrap;font-size:.75rem;color:rgba(255,255,255,.45)}
 
-.fab{position:fixed;right:32px;bottom:32px;z-index:9999;display:flex;align-items:center;
+.fab{position:fixed;right:var(--fab-borda,32px);bottom:var(--fab-borda,32px);z-index:9999;display:flex;align-items:center;
   justify-content:center;width:62px;height:62px;border-radius:50%;background:var(--laranja);
   color:var(--ink);border:3px solid var(--ink);box-shadow:4px 4px 0 0 var(--ink);
   transition:transform .3s var(--ease)}
@@ -646,6 +681,64 @@ footer{position:relative;overflow:hidden;background:var(--ink);color:#fff;
   background:var(--laranja);z-index:-1;animation:anel 2.4s ease-out infinite}
 .fab::after{animation-delay:1.2s}
 @keyframes anel{0%{transform:scale(1);opacity:.55}100%{transform:scale(2.1);opacity:0}}
+
+/* ===========================================================================
+   REVELACAO - o sistema de entrada, um so para o site inteiro
+   ---------------------------------------------------------------------------
+   Tres regras que valeram em todas as decisoes aqui:
+
+   1. SO OPACIDADE E DESLOCAMENTO. Nada de giro, salto ou elastico. Movimento
+      que chama atencao para si tira a atencao do que esta escrito, e quem
+      chega neste site as tres da manha nao veio ver animacao.
+
+   2. NADA DE ESCALA EM TEXTO. Texto sob transform:scale e reamostrado pela GPU
+      e fica borrado durante a transicao. Escala fica so em bloco de imagem.
+
+   3. CURVA DESACELERANTE, SEM VOLTA. cubic-bezier(.22,.68,.32,1) chega e para.
+      Curvas com overshoot (o "quique") sao o que faz animacao de site parecer
+      template pronto.
+
+   O estado inicial e escondido, entao ele SO pode existir se o JS estiver de
+   pe para desfaze-lo. Por isso tudo aqui esta preso a `html.js`, classe que o
+   proprio script coloca antes da primeira pintura: se o JS falhar, nada fica
+   invisivel - o site so aparece parado.
+   =========================================================================== */
+:root{--surge:cubic-bezier(.22,.68,.32,1);--dur-surge:.72s}
+
+html.js [data-revela]{
+  opacity:0;
+  transition:opacity var(--dur-surge) var(--surge),transform var(--dur-surge) var(--surge);
+  transition-delay:var(--atraso,0ms)}
+
+/* translate3d, e nao translateY, para a camada ir para a GPU e a entrada nao
+   engasgar em celular mais fraco. */
+html.js [data-revela="sobe"]  {transform:translate3d(0,30px,0)}
+html.js [data-revela="desce"] {transform:translate3d(0,-20px,0)}
+html.js [data-revela="esq"]   {transform:translate3d(-34px,0,0)}
+html.js [data-revela="dir"]   {transform:translate3d(34px,0,0)}
+/* Blocos de midia entram com peso: sobem menos e crescem de leve. */
+html.js [data-revela="peso"]  {transform:translate3d(0,22px,0) scale(.965)}
+
+html.js [data-revela].dentro{opacity:1;transform:none}
+
+/* Depois de revelado o elemento sai do caminho do compositor. Sem isto, cada
+   um dos ~70 alvos continua sendo candidato a camada propria pelo resto da
+   navegacao. */
+html.js [data-revela].dentro.pronto{transition:none;will-change:auto}
+
+/*
+  A LINHA QUE ABRE A SECAO.
+  Um fio laranja que se estende sob o titulo quando a secao entra. E o unico
+  elemento puramente decorativo da entrada, e existe por um motivo pratico:
+  num site de rolagem longa ele marca "comecou coisa nova aqui" sem precisar
+  de mais um titulo ou mais uma borda.
+*/
+.secao > .wrap{position:relative}
+html.js [data-fio]::after{content:"";position:absolute;left:0;bottom:-14px;height:3px;width:0;
+  border-radius:2px;background:var(--laranja);
+  transition:width .9s var(--surge);transition-delay:calc(var(--atraso,0ms) + 180ms)}
+html.js [data-fio].dentro::after{width:64px}
+.sobre-escuro [data-fio]::after,.sobre-laranja [data-fio]::after{background:var(--branco)}
 
 /* ===========================================================================
    RESPONSIVO
@@ -659,7 +752,7 @@ footer{position:relative;overflow:hidden;background:var(--ink);color:#fff;
 @media (max-width:900px){
   .hero-grid,.contato{grid-template-columns:1fr;gap:44px}
   .nav ul,.nav .nav-cta{display:none}
-  .burger{display:block}
+  .burger{display:flex}
   /*
     Em coluna unica a foto vira faixa embaixo, nao pano de fundo do texto:
     titulo sobre foto de pelo claro nao tem contraste garantido, e aqui o
@@ -697,6 +790,71 @@ footer{position:relative;overflow:hidden;background:var(--ink);color:#fff;
   .btn{width:100%}
   .item-serv p{max-height:140px;opacity:1;margin-top:8px}
 }
+/* ===========================================================================
+   MOBILE - a passada de acabamento
+   ---------------------------------------------------------------------------
+   O que estava errado, medido na tela de 375px antes destas regras:
+
+   1. Texto abaixo de 12px em seis lugares (rotulo de endereco a 11,2px,
+      etiqueta do card de prevencao a 10,9px). No desktop essas linhas sao
+      apoio lido de relance; no celular, com o braco esticado, viram ruido.
+   2. Alvos de toque abaixo de 44px: o menu sanduiche tinha 28px, o link do
+      telefone 25px de altura, o link do Google 29px.
+   3. A secao de servicos mostrava a foto DEPOIS da lista inteira: tocar num
+      servico trocava uma imagem fora da tela. Interacao que nao da retorno
+      visivel ensina que o site nao responde.
+   =========================================================================== */
+@media (max-width:900px){
+  /* --- 1. tamanhos minimos de leitura ------------------------------------ */
+  .linha-info dt{font-size:.78rem}
+  .depo .origem{font-size:.8rem}
+  .aviso .rotulo{font-size:.76rem}
+  .fachada .legenda{font-size:.8rem}
+
+  /* --- 2. area de toque -------------------------------------------------- */
+  /* O alvo cresce sem o texto crescer: padding e margem negativa mantem o
+     ritmo visual da linha e dao ao dedo os 44px que ele precisa. */
+  .ver-google{font-size:.82rem;padding:14px 0;margin-top:22px}
+  /* Pega qualquer telefone, onde quer que ele esteja. O seletor anterior
+     mirava so a lista de endereco e deixava de fora o do card de urgencia -
+     que e, dos dois, o que alguem toca com pressa. */
+  a[href^="tel:"]{display:inline-block;padding:10px 0}
+  :root{--fab-borda:18px}
+  .fab{width:58px;height:58px}
+
+  /* Rodape: era o pior lugar do site para o dedo. Oito links de 18px de
+     altura empilhados com 6px entre eles - errar o alvo era o comportamento
+     esperado, nao o acidente. */
+  .foot li a,.foot p a{display:inline-block;padding:14px 0;line-height:1.25}
+  .foot ul li + li{margin-top:0}
+  .foot-baixo{font-size:.78rem;gap:8px}
+
+  /* Indicador do hero: 11px e o tamanho certo no monitor e pequeno demais no
+     polegar. Cresce, e ganha area de toque invisivel em volta. */
+  .dots{gap:16px}
+  .dots button{width:13px;height:13px;position:relative}
+  .dots button::after{content:"";position:absolute;inset:-16px}
+  .dots button.on{width:40px;height:13px}
+
+  /* --- 3. entrada mais curta --------------------------------------------- */
+  /* 30px de deslocamento numa tela de 375px e proporcionalmente o dobro do
+     que e num monitor. A distancia cai para acompanhar. */
+  html.js [data-revela="sobe"]{transform:translate3d(0,20px,0)}
+  html.js [data-revela="esq"],
+  html.js [data-revela="dir"]{transform:translate3d(0,20px,0)}
+  html.js [data-revela="peso"]{transform:translate3d(0,16px,0) scale(.98)}
+  :root{--dur-surge:.6s}
+
+  /* --- 4. servicos: a foto sobe para junto do que ela ilustra ------------- */
+  /* O JS move o painel para logo abaixo do texto de abertura. Grudado no topo,
+     ele fica a vista enquanto a lista passa por baixo, e cada servico que
+     cruza o meio da tela troca a foto sozinho - sem depender de toque. */
+  #servicos .painel-foto{position:sticky;top:92px;z-index:2;
+    aspect-ratio:16/10;max-height:32vh;margin:26px 0 4px}
+  #servicos .painel-foto .tag{padding:16px 20px;font-size:.82rem}
+  .item-serv{scroll-margin-top:140px}
+}
+
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition-duration:.01ms!important;
     scroll-behavior:auto!important}
@@ -705,8 +863,17 @@ footer{position:relative;overflow:hidden;background:var(--ink);color:#fff;
 #menu{position:fixed;inset:0;z-index:999;display:none;flex-direction:column;align-items:center;
   justify-content:center;gap:28px;background:var(--ink);padding:24px}
 #menu.aberto{display:flex}
-#menu a{font-family:var(--display);font-size:1.9rem;font-weight:800;text-transform:uppercase;color:#fff}
-#menu a:hover{color:var(--laranja)}
+/*
+  Padding vertical e o que transforma a linha em alvo. Sem ele o link tinha
+  18px de altura - menos da metade do minimo de 44px, e o dedo acerta o
+  espaco entre dois itens com a mesma facilidade com que acerta um deles.
+*/
+#menu a{display:block;padding:10px 24px;font-family:var(--display);font-size:1.75rem;
+  font-weight:800;text-transform:uppercase;color:#fff;transition:color .2s}
+#menu a:hover,#menu a:active{color:var(--laranja)}
+/* O botao de conversa some da navbar no mobile. Se ele nao voltar aqui, o menu
+   aberto e a unica tela do site sem a acao principal a vista. */
+#menu .btn{margin-top:14px;width:auto;padding:16px 30px}
 </style>
 </head>
 
@@ -762,6 +929,11 @@ footer{position:relative;overflow:hidden;background:var(--ink);color:#fff;
   <a href="#clinica">A clínica</a>
   <a href="#duvidas">Dúvidas</a>
   <a href="#contato">Contato</a>
+  <a class="btn btn-cta" target="_blank" rel="noopener"
+     href="https://wa.me/5581982348804?text=Ol%C3%A1!%20Preciso%20de%20atendimento%20para%20o%20meu%20pet.">
+    <span class="bolha"><svg width="17" height="17" fill="currentColor"><use href="#wa"/></svg></span>
+    Falar agora
+  </a>
 </div>
 
 <main>
@@ -1379,6 +1551,166 @@ footer{position:relative;overflow:hidden;background:var(--ink);color:#fff;
 </a>
 
 <script>
+/* ===========================================================================
+   MOTOR DE REVELACAO
+   ---------------------------------------------------------------------------
+   O mapa abaixo e a razao deste codigo existir em vez de atributos espalhados
+   pelo HTML. Uniformidade pedida no HTML depende de ninguem esquecer de marcar
+   um elemento; uniformidade declarada num mapa e verificavel de uma olhada, e
+   ajustar o ritmo do site inteiro vira mudar um numero.
+
+   Como cada secao entra:
+     1. o cabecalho (etiqueta -> titulo -> texto -> botao) em cascata de 90ms;
+     2. os blocos grandes (foto, painel, card) com peso, logo em seguida;
+     3. as listas repetidas em cascata de 80ms, no maximo 6 degraus.
+
+   O teto de 6 degraus importa: sem ele, a lista de servicos (6 itens) e a de
+   perguntas (5) terminariam de entrar quase um segundo depois da primeira,
+   e quem rola rapido veria a secao ainda se montando.
+--------------------------------------------------------------------------- */
+(function(){
+  if(!document.documentElement.classList.contains('js')) return;
+
+  var PASSO_CABECA = 90,   // ms entre etiqueta, titulo, texto e botao
+      PASSO_LISTA  = 80,   // ms entre itens de uma mesma lista
+      TETO         = 6;    // degraus maximos numa cascata
+
+  /* seletor -> como entra. Ordem importa: o primeiro que casar vence. */
+  /* .max-680 e afins ficam DE FORA: sao involucros de largura que envolvem a
+     etiqueta e o titulo. Marcar os dois compoe opacidade (0,4 x 0,4 = 0,16) e
+     a entrada fica turva no meio do caminho. O guarda em marcar() tambem
+     bloqueia isso, mas nao pedir e melhor do que pedir e ser barrado. */
+  var CABECALHO = ['.badge', 'h1.t-hero', 'h2.t-sec', '.lead'];
+
+  var BLOCOS = [
+    ['.fachada',        'esq'],
+    ['.painel-foto',    'dir'],
+    ['.painel-urgencia','dir'],
+    ['.bloco-prova',    'peso'],
+    ['.aviso',          'peso'],
+    ['.foto-inst',      'peso'],
+    ['.card-conversa',  'esq'],
+    ['.coluna-mapa',    'dir'],
+    ['.gigante',        'sobe']
+  ];
+
+  var LISTAS = [
+    ['.info-local', '.linha-info'],
+    ['.faixa-num',  '.num-item'],
+    ['.trio',       '.depo'],
+    ['.sinais',     '.sinal'],
+    ['.lista-serv', '.item-serv'],
+    ['.faq',        '.faq-item'],
+    ['.bento',      '.cel'],
+    ['.redes',      'a']
+  ];
+
+  function marcar(el, modo, atraso){
+    if(!el || el.hasAttribute('data-revela')) return;
+    /* Nunca marcar dentro de outro marcado. Opacidade de pai e filho se
+       multiplicam, entao um elemento aninhado atravessa a entrada mais apagado
+       que os vizinhos e o conjunto perde o alinhamento. */
+    if(el.parentElement && el.parentElement.closest('[data-revela]')) return;
+    el.setAttribute('data-revela', modo);
+    if(atraso) el.style.setProperty('--atraso', atraso + 'ms');
+  }
+
+  /*
+    ORDEM IMPORTA, e esta e a razao de os blocos virem primeiro.
+
+    O guarda em marcar() so olha para cima: recusa marcar quem ja tem um
+    ancestral marcado. Se o cabecalho passasse antes, um botao dentro do
+    card de contato seria marcado, e depois o card inteiro tambem - e o
+    guarda nao pegaria, porque o botao e descendente, nao ancestral.
+
+    Marcando os blocos grandes primeiro, tudo que mora dentro deles e
+    recusado em seguida. Cada bloco entra como uma peca so, que e como ele
+    e lido de qualquer forma.
+  */
+  /* --- blocos grandes ---------------------------------------------------- */
+  BLOCOS.forEach(function(par){
+    document.querySelectorAll(par[0]).forEach(function(el){ marcar(el, par[1], 120); });
+  });
+
+  /* --- listas repetidas, em cascata --------------------------------------
+     Tambem antes do cabecalho, e pelo mesmo motivo dos blocos: uma celula do
+     bento contem um botao, e marcar o botao primeiro deixaria os dois marcados.
+  ------------------------------------------------------------------------- */
+  LISTAS.forEach(function(par){
+    document.querySelectorAll(par[0]).forEach(function(caixa){
+      caixa.querySelectorAll(par[1]).forEach(function(item, i){
+        marcar(item, 'sobe', Math.min(i, TETO) * PASSO_LISTA);
+      });
+    });
+  });
+
+  /* --- cabecalho de cada secao, em cascata ------------------------------- */
+  document.querySelectorAll('#topo, .secao').forEach(function(sec){
+    var n = 0;
+    CABECALHO.forEach(function(sel){
+      sec.querySelectorAll(':scope > .wrap > * > ' + sel + ', :scope > .wrap > ' + sel)
+         .forEach(function(el){ marcar(el, 'sobe', n++ * PASSO_CABECA); });
+    });
+    /* A fileira de botoes fecha a cascata: entra por ultimo, depois do texto
+       que a justifica. Marca-se o container e nao cada botao - dois botoes
+       lado a lado devem entrar juntos, sao uma decisao so. */
+    sec.querySelectorAll('.wrap .btn').forEach(function(btn){
+      var caixa = btn.parentElement;
+      if(caixa && caixa.classList.contains('bolha')) return;
+      marcar(caixa, 'sobe', n++ * PASSO_CABECA);
+    });
+
+    /* o fio laranja nasce do titulo da secao */
+    var titulo = sec.querySelector('h2.t-sec');
+    if(titulo) titulo.setAttribute('data-fio','');
+  });
+
+  /* --- o observador ------------------------------------------------------ */
+  var alvos = document.querySelectorAll('[data-revela]');
+
+  function revelar(el){
+    el.classList.add('dentro');
+    /* tira o elemento do caminho do compositor quando a entrada termina */
+    setTimeout(function(){ el.classList.add('pronto'); }, 1400);
+  }
+
+  if(!('IntersectionObserver' in window)){
+    alvos.forEach(revelar);
+    return;
+  }
+
+  var obs = new IntersectionObserver(function(entradas){
+    entradas.forEach(function(e){
+      if(!e.isIntersecting) return;
+      revelar(e.target);
+      obs.unobserve(e.target);
+    });
+  }, {
+    /* -10% embaixo: o elemento so entra depois de passar da beirada, e nao
+       no exato pixel em que encosta nela. Rodape de tela e onde o olho menos
+       repara, e revelar ali desperdica a animacao. */
+    rootMargin: '0px 0px -10% 0px',
+    threshold: 0.06
+  });
+
+  alvos.forEach(function(a){ obs.observe(a); });
+
+  /*
+    O hero nao espera rolagem: entra assim que a pagina abre.
+
+    setTimeout e nao requestAnimationFrame, de proposito. rAF fica PAUSADO em
+    aba de segundo plano, em painel de previa e em ferramenta de captura - e
+    com ele o hero ficaria em branco ate a aba virar a da frente. Um atraso
+    curto cumpre o mesmo papel (deixar o estado inicial pintar antes de virar)
+    sem depender do relogio de animacao estar correndo.
+  */
+  setTimeout(function(){
+    document.querySelectorAll('#topo [data-revela]').forEach(function(el){
+      revelar(el); obs.unobserve(el);
+    });
+  }, 80);
+})();
+
 /* --- slideshow do hero -----------------------------------------------------
    6 segundos por foto, com 1,4s de travessia. Era 4s com 0,9s quando a imagem
    era um card pequeno. Em tela cheia o mesmo ritmo vira inquietacao: quanto
@@ -1433,6 +1765,52 @@ footer{position:relative;overflow:hidden;background:var(--ink);color:#fff;
     item.addEventListener('click',function(){clearTimeout(espera);selecionar(n)});
   });
   document.getElementById('lista').addEventListener('mouseleave',function(){clearTimeout(espera)});
+
+  /* --- no celular a foto sobe e passa a seguir a rolagem ------------------
+     Duas coisas mudam, e as duas resolvem o mesmo problema: no layout de
+     coluna unica o painel caia depois da lista inteira, entao tocar num
+     servico trocava uma imagem que estava fora da tela.
+
+     1. O painel e movido para logo abaixo do texto de abertura. Com o CSS
+        grudando ele no topo, fica a vista enquanto a lista corre por baixo.
+     2. Cada servico se seleciona quando cruza o meio da tela. Nao ha mouse
+        para passar por cima, e exigir toque para ver a foto trocar seria
+        exigir que a pessoa descubra sozinha que aquilo e tocavel.
+  ----------------------------------------------------------------------- */
+  (function(){
+    var painel = document.getElementById('painel'),
+        abertura = document.querySelector('#servicos .lead');
+    if(!painel || !abertura) return;
+
+    /* Guardar de onde ele veio, para saber voltar. Sem isto, quem gira o
+       celular para paisagem fica com a foto encalhada dentro da coluna de
+       texto - o layout de duas colunas volta, e ela nao. */
+    var casa = painel.parentElement, vizinho = painel.nextElementSibling;
+    var estreito = matchMedia('(max-width:900px)');
+
+    function arrumar(){
+      if(estreito.matches) abertura.insertAdjacentElement('afterend', painel);
+      else casa.insertBefore(painel, vizinho);
+    }
+    arrumar();
+    estreito.addEventListener('change', arrumar);
+
+    if(!('IntersectionObserver' in window)) return;
+    /* Faixa de deteccao no meio da tela: o item so vale quando esta sendo
+       lido, nao quando encosta na beirada. */
+    var olho = new IntersectionObserver(function(entradas){
+      entradas.forEach(function(e){
+        if(e.isIntersecting) selecionar(+e.target.getAttribute('data-i'));
+      });
+    }, { rootMargin: '-48% 0px -48% 0px', threshold: 0 });
+    function ligarOlho(){
+      itens.forEach(function(item){
+        if(estreito.matches) olho.observe(item); else olho.unobserve(item);
+      });
+    }
+    ligarOlho();
+    estreito.addEventListener('change', ligarOlho);
+  })();
 })();
 
 /* --- accordion: um aberto por vez ----------------------------------------- */
