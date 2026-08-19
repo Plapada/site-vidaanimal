@@ -634,11 +634,27 @@ button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:p
 @media (hover:hover){.cp-fone:hover{color:var(--laranja)}}
 
 @media (max-width:900px){
-  .plano{grid-template-columns:1fr;gap:38px}
-  /* No celular o cartao vem PRIMEIRO: o preco e o argumento mais forte que
-     esta secao tem, e numa coluna so ele ficaria depois de tudo. */
-  .cartao-plano{order:-1;padding:34px 26px 28px}
-  .plano-itens{margin-top:26px}
+  /*
+    O cartao precisa cair DENTRO da sequencia do texto - logo depois da
+    explicacao e antes do botao - e nao antes ou depois do bloco inteiro.
+
+    So que ele e IRMAO da coluna de texto, nao filho: `order` sozinho move a
+    coluna toda, nunca posiciona o cartao no meio dela. `display:contents`
+    dissolve a caixa da coluna sem apagar seu conteudo - os filhos dela passam
+    a ser filhos diretos do flex, e aí `order` alcanca cada um.
+
+    A alternativa seria mover o no pelo JS, como fiz no painel de servicos. Ali
+    era inevitavel (o elemento precisava sangrar para fora de um ancestral que
+    o prendia); aqui e so ordem, e ordem e trabalho do CSS.
+  */
+  .plano{display:flex;flex-direction:column;gap:0}
+  #plano .plano > div{display:contents}
+  #plano .badge        {order:1}
+  #plano .t-sec        {order:2}
+  #plano .lead         {order:3}
+  #plano .cartao-plano {order:4;margin-top:30px;padding:34px 26px 28px}
+  #plano .plano-itens  {order:5;margin-top:30px}
+  #plano .mt-5         {order:6}
 }
 @media (max-width:640px){
   .plano-itens{grid-template-columns:1fr;gap:12px}
