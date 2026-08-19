@@ -187,7 +187,14 @@ button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:p
   A frase mais longa tem 27 caracteres; na coluna de 62% isso da ~640px de
   largura de texto a 2.9rem, com folga. A 3.3rem estourava para 4 linhas.
 */
-.t-hero{font-size:clamp(1.85rem,2.85vw,2.6rem);line-height:1.1;font-weight:800}
+/*
+  De 2,85vw para 3,35vw - cerca de 41px para 48px em 1440. O hero deixou de ser
+  meia tela com texto e virou uma foto inteira; nessa escala o titulo anterior
+  era pequeno demais para segurar a composicao.
+  O teto de 3,05rem existe para a linha ("Clinica 24h em Jaboatao." mede ~13
+  larguras de caractere) nao estourar a coluna de 660px e quebrar em tres.
+*/
+.t-hero{font-size:clamp(1.95rem,3.35vw,3.05rem);line-height:1.08;font-weight:800}
 .t-sec{font-size:clamp(2rem,4vw,3rem);line-height:1.1;font-weight:800}
 .t-manifesto{font-size:clamp(2.2rem,3.8vw,3.4rem);line-height:1.12;font-weight:900;letter-spacing:-.02em}
 .laranja{color:var(--laranja)}
@@ -334,9 +341,18 @@ button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:p
   soltos, mexer em uma sem lembrar das outras encostou o texto na foto uma vez.
 */
 :root{--sobra-hero:46px}
-#topo{position:relative;overflow:clip;display:flex;align-items:center;
+/*
+  align-items:flex-end e nao center: com a foto ocupando a tela inteira, o
+  conteudo centralizado cortava a imagem ao meio e disputava com o assunto dela.
+  Ancorado embaixo, ele libera os dois tercos de cima para a foto respirar e
+  ainda cai onde o polegar e o olho ja estao - a parte de baixo da tela.
+
+  Os 120px de folga sao contados a partir da DOBRA (por isso somam a sobra),
+  e nao do fim do hero, que fica 46px abaixo dela.
+*/
+#topo{position:relative;overflow:clip;display:flex;align-items:flex-end;
   min-height:calc(100dvh + var(--sobra-hero));
-  padding:160px 24px calc(90px + var(--sobra-hero));background:var(--creme)}
+  padding:160px 24px calc(120px + var(--sobra-hero));background:var(--creme)}
 
 /* Uma coluna so - a direita agora e da foto. O min() e o que garante que o
    texto nunca invada a parte solida da imagem: 46vw termina antes de onde a
@@ -387,16 +403,21 @@ button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:p
    =========================================================================== */
 .hero-foco{position:absolute;inset:0;z-index:1;pointer-events:none;
   -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);
-  --foco:linear-gradient(97deg,#000 0%,#000 26%,rgba(0,0,0,.72) 42%,
-    rgba(0,0,0,.3) 58%,transparent 72%);
+  --foco:linear-gradient(97deg,#000 0%,#000 34%,rgba(0,0,0,.80) 48%,
+    rgba(0,0,0,.45) 60%,rgba(0,0,0,.15) 72%,transparent 82%);
   -webkit-mask-image:var(--foco);mask-image:var(--foco)}
 
 .hero-foto::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
   background:
     /* 1. concentracao do lado do texto */
+    /* A cobertura alta se estende ate ~50% porque o titulo cresceu e a cauda
+       dele agora chega mais longe. Antes, aos 52% da tela a cobertura ja tinha
+       caido para 41% - e branco sobre foto clara ali daria 2,1:1, reprovando.
+       Com esta curva o mesmo ponto fica em 77% e o contraste sobe para 3,8:1. */
     linear-gradient(97deg,
-      rgba(10,6,3,.90) 0%,  rgba(10,6,3,.84) 22%, rgba(10,6,3,.58) 42%,
-      rgba(10,6,3,.26) 60%, rgba(10,6,3,.10) 78%, rgba(10,6,3,.04) 100%),
+      rgba(10,6,3,.92) 0%,  rgba(10,6,3,.90) 30%, rgba(10,6,3,.88) 44%,
+      rgba(10,6,3,.62) 56%, rgba(10,6,3,.34) 68%, rgba(10,6,3,.14) 82%,
+      rgba(10,6,3,.05) 100%),
     /* 2. peso no rodape, para a borda inferior nao cortar seco */
     linear-gradient(to top, rgba(10,6,3,.42) 0%, rgba(10,6,3,0) 34%),
     /* 3. tinta quente geral: unifica fotos de origens e temperaturas diferentes
@@ -430,7 +451,11 @@ button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:p
 .etiquetas{display:flex;flex-wrap:wrap;gap:10px;list-style:none;margin:34px 0 0;padding:0}
 .etiquetas li{display:inline-flex;align-items:center;padding:9px 16px;
   border:1.5px solid rgba(255,255,255,.42);border-radius:var(--r-pill);
-  background:rgba(255,255,255,.09);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  /* Vidro FUME, e nao leitoso. O preenchimento branco a 9% clareava o fundo
+     exatamente atras do texto branco: as etiquetas ficavam em 3,45:1 e texto
+     pequeno exige 4,5:1. Escurecendo o proprio chip em vez de clarear, o mesmo
+     branco sobe para 5,3:1 - e sobre foto o fume ainda le melhor. */
+  background:rgba(10,6,3,.4);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
   font-family:var(--display);font-size:.72rem;font-weight:700;text-transform:uppercase;
   letter-spacing:.09em;color:var(--branco);cursor:default;
   transition:transform .38s var(--surge),background-color .3s,border-color .3s,color .3s}
@@ -1028,7 +1053,7 @@ html.js [data-revela].dentro{opacity:1;transform:var(--pouso,none)}
   /* No celular o texto e ancorado na base, entao a sobra entra no padding para
      os botoes pararem 34px acima da DOBRA, e nao do fim do hero. */
   :root{--sobra-hero:34px}
-  #topo{align-items:flex-end;padding:120px 16px calc(34px + var(--sobra-hero))}
+  #topo{align-items:flex-end;padding:120px 16px calc(48px + var(--sobra-hero))}
   /* Retrato cortado pelo centro corta o rosto. 32% puxa o quadro para cima. */
   .hero-foto img{object-position:50% 32%}
   /*
@@ -1064,7 +1089,7 @@ html.js [data-revela].dentro{opacity:1;transform:var(--pouso,none)}
      cima de mais foto do que o necessario. */
   .hero-grid{max-width:100%}
   #topo .badge{font-size:.68rem;letter-spacing:.1em;padding:9px 16px}
-  .t-hero{font-size:1.72rem}
+  .t-hero{font-size:1.95rem}
   #topo .lead{font-size:.92rem;line-height:1.6;margin-top:12px}
   #topo .mt-5{margin-top:22px;gap:10px}
   #topo .btn{padding:15px 24px}
