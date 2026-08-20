@@ -1,28 +1,30 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!--
-    FAVICON DA VIDA ANIMAL — a marca do "A", com o cao e o gato formando o vertice.
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+<!--
+  A MARCA DO VIDA ANIMAL: o "A" cujo vertice e formado por um cao e um gato de
+  perfil, focinhos voltados para fora.
 
-    Duas coisas resolvidas aqui:
+  Ela sai do logo oficial, que e um PNG branco sobre preto chapado sem canal
+  alfa - nao da para simplesmente pintar de outra cor. A saida e usar o proprio
+  arquivo como MASCARA DE LUMINANCIA: onde ele e branco a mascara deixa passar,
+  onde e preto bloqueia. O que passa e um retangulo de cor solida, e ai a cor
+  pode ser qualquer uma - inclusive uma que muda com o tema.
 
-    1. TROCA DE COR POR TEMA. O `media` em <link rel="icon"> tem suporte irregular
-       entre navegadores. Media query DENTRO do SVG e avaliada por Chrome, Firefox
-       e Safari, entao a troca acontece no proprio arquivo: preto quando a barra
-       do navegador esta clara, branco quando esta escura.
+  RECORTE. Isolar a marca deu trabalho porque as orelhas se sobrepoem as letras
+  vizinhas: nao existe uma unica coluna de pixels vazia entre o "a" de Vida, o
+  "A" e o "n" de Animal. Cortar na vertical decepava as focinheiras.
+  A solucao foi um corte em L - abaixo da altura-x, so as duas bandas estreitas
+  onde vivem "a" (ate x=715) e "n" (a partir de x=1061) sao apagadas. Acima
+  dela nada e tocado, porque minuscula sem ascendente nao chega la.
 
-    2. O ARQUIVO DE ORIGEM NAO TEM ALFA. O PNG do logo e branco sobre preto
-       chapado. Aqui ele entra como MASCARA de luminancia: o branco da arte vira
-       area visivel, o preto vira transparente, e a cor passa a ser pintada por
-       um retangulo por baixo. Assim a mesma arte serve aos dois temas sem
-       precisar de duas versoes do arquivo.
-
-    A marca foi extraida do PNG e reduzida a 64px por `favicon-builder.html`.
-  -->
-  <style>
-    .marca { fill: #000000 }
-    @media (prefers-color-scheme: dark) { .marca { fill: #FFFFFF } }
-  </style>
-  <mask id="m">
-    <image width="64" height="64" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAADEElEQVR4AeyWC27EIAxE9/X+d97WQTTU/GwCq1RBqkPwb8YDTfv1er3eTzYR4Gf+5/5sAZ579mHyfQOCDs997hvw3LMPk+8bEHR47nPfgOeefZh834Cgw/9+vt/vVzTvJK4bEEHi6gVbkS9crvR1CaCBroLrft79CL7GcAkA6Prj6mXODzhKw0POr0fFJUCtWYlMLfeqX7DErvaJ9U0BBEhbLNRrzNP+mXvB8Pbr1TQFAP+V6gF6B5B86Skm7zWDwFXyUoPgr9U1BagV9fyRQC+vF/f08eSmuF0BoK1g2ky/Cynts+6v1EYM6HPvChCbja7eQSRfbBQv1kF/eMntCjCDjLWHNU+Itwxsw0uPrgCSNMNaw0lMbAaO9PD0MgsAdlWFRMkiMVnFSjmf9pkFmEEY+POfY+wJ18XVwsXe2q/3TQGsTXRTz/4TGC0+TQFahd4Y/D19b701H3gBR7pF3KoAluIDZcJDsCCQvtpOeolZ+xQF8DSwAEE+HOQ+Sy9PDvQxigJ4QKy5qahQJgZlvxWjlNfzZQKkRHvFljjUh4IzNhvXwk1yMgHEaTU4B2jVpMNBuwba8RaOjqW4Ohb3mQDQJwD8fmljo9EV+C3tEQam4UbQTAAJQACC8io50YD4mq2w5k8fcAgB/TUjpRxFAVTOtC3Q7SW3API8yH3dZoaEKQJATg5yX40P2HNrPUb9UwSogctpxhj4hgRffsTxrtMEgJMwnO9WQnDWpMJJPZwx2c+0aQJoUukQMDYAjNVpLq29W4B0MN0YOL7O2i81FkvrJD/dr3p3CyBEeuR6celhNcCaOpQ3JMAQ0kDRTCFr8NMF0KSB49cC7GuN7Ar/dAFSkkC6HXrXgg41aRQtFaCB2wzBdeGaAElwqgCrTyvhXX31BqYKkILDtVOEs36lsNMEWElShF3V3y0AcHzVhVQ0TQ6IoUsrzOnTIuEWoNQMOESBsJZyRn0QegKjLZp1UwRoItw8uAW4+QEtp7dvwHKJbw6wb8DND2g5vX0Dlkt8c4B9A25+QMvp/fsbcFWhbwAAAP//vbYnoQAAAAZJREFUAwCdoWZQeT74lQAAAABJRU5ErkJggg=="/>
-  </mask>
-  <rect class="marca" width="64" height="64" mask="url(#m)"/>
+  Resultado: 531x397 no arquivo original, razao 1,34 contra 1,57 do recorte
+  ingenuo. Num icone de 16px cada ponto de proporcao vira marca maior.
+-->
+<style>
+  .marca{fill:#000}
+  @media (prefers-color-scheme:dark){ .marca{fill:#fff} }
+</style>
+<mask id="m" maskUnits="userSpaceOnUse" x="0" y="24" width="192" height="144">
+  <image href="data:image/png;base64,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" x="0" y="24" width="192" height="144"/>
+</mask>
+<rect class="marca" width="192" height="192" mask="url(#m)"/>
 </svg>
